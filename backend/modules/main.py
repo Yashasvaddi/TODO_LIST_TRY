@@ -23,7 +23,7 @@ async def twilio_webhook(request: Request):
     body = form.get("Body")
     
     print(f"Message from {from_number} to {to_number}: {body}")
-    ans=model.generate_content(f"Give an appropriate response to {body}")
+    ans=model.generate_content(f"Give an appropriate response to {body}. Answer in  only one line.")
 
     account_sid = os.getenv('account_sid')
     auth_token = os.getenv('auth_token')
