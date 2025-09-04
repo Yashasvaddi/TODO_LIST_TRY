@@ -4,7 +4,9 @@ import _asyncio
 import google.generativeai as genai
 from twilio.rest import Client
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 genai.configure(os.getenv('gemini_api_key'))
 
