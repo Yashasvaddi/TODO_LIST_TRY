@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-genai.api_key = os.getenv('gemini_api_key')  # assign API key
+genai.api_key = "AIzaSyCrbEDZuPcBoAJ5fSOWYD2JOEhmAYueaOU"  # assign API key
 
 genai.configure()  # no arguments
 
@@ -24,7 +24,7 @@ async def twilio_webhook(request: Request):
     body = form.get("Body")
     
     print(f"Message from {from_number} to {to_number}: {body}")
-    ans=model.generate_content(f"Give an appropriate response to Panda")
+    ans=model.generate_content(f"Give an appropriate response to {body}")
 
     account_sid = os.getenv('account_sid')
     auth_token = os.getenv('auth_token')
