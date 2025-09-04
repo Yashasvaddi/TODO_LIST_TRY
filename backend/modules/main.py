@@ -1,5 +1,14 @@
 from fastapi import FastAPI,Request
 from pydantic import BaseModel
+import _asyncio
+import google.generativeai as genai
+from twilio.rest import Client
+import os
+
+
+genai.configure(os.getenv('gemini_api_key'))
+
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 app=FastAPI()
 
@@ -12,7 +21,19 @@ async def twilio_webhook(request: Request):
     body = form.get("Body")
     
     print(f"Message from {from_number} to {to_number}: {body}")
-    
+    ans=model.generate_content(f"Give an appropriate response to {body}")
+
+    account_sid = os.getenv('account_sid')
+    auth_token = os.getenv('auth_token')
+    client = Client(account_sid, auth_token)
+
+    message = client.messages.create(
+    from_='whatsapp:+14155238886',
+    body=f'{ans.text}',
+    to='whatsapp:+919326240918'
+)
+
+
     # Optionally send back a response to Twilio
     return {"status": "received", "body": body}
 
