@@ -7,9 +7,8 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-genai.api_key = "AIzaSyCrbEDZuPcBoAJ5fSOWYD2JOEhmAYueaOU"  # assign API key
-
-genai.configure()  # no arguments
+  # assign API key
+genai.configure(api_key = "AIzaSyCrbEDZuPcBoAJ5fSOWYD2JOEhmAYueaOU")  # no arguments
 
 model = genai.GenerativeModel('gemini-2.0-flash')
 
@@ -33,7 +32,7 @@ async def twilio_webhook(request: Request):
     message = client.messages.create(
     from_='whatsapp:+14155238886',
     body=f'{ans.text}',
-    to='whatsapp:+919326240918'
+    to='whatsapp:+919702120202'
 )
 
 
