@@ -3,6 +3,11 @@ from pydantic import BaseModel
 
 app=FastAPI()
 
+@app.post('/notjsontest')
+def tester(value):
+    print(value)
+    return value
+
 class value(BaseModel):
     text:str
 
