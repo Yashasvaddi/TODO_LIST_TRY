@@ -4,3 +4,4 @@ uvicorn
 python-multipart
 twilio
 google-generativeai
+python-dotenv
