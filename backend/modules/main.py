@@ -28,31 +28,34 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+groups={
+    "group1":set(),
+    "group2":set(),
+    "group3":set(),
+    "group4":set(),    
+}
 connected_users = set()
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+@app.websocket("/ws/{group_name}")
+async def websocket_endpoint(websocket: WebSocket,group_name:str):
     await websocket.accept()
     connected_users.add(websocket)
-    print(f"New user connected. Total users: {len(connected_users)}")
+    print(f"New user connected to {group_name}. Total users: {len(connected_users)}")
     
     try:
         while True:
             message = await websocket.receive_text()
-            print(f"Received: {message}")
-
-            # Broadcast message to all other users
-            for user in connected_users:
+            print(f"{group_name} is Received: {message}")
+            for user in groups[group_name]:
                 if user != websocket:
                     try:
-                        await user.send_text(message)
+                        await user.send_text(f"{group_name}{message}")
                     except:
                         pass
     except WebSocketDisconnect:
-        print("User disconnected")
+        print(f"User disconnected from {group_name}")
     finally:
-        connected_users.remove(websocket)
+        groups[group_name].remove(websocket)
         print(f"Total users: {len(connected_users)}")
 
 
