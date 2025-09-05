@@ -35,7 +35,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model = YOLO("TODO_LIST_TRY\\backend\\models\\best.pt")  # automatically loads full model
+model = YOLO("backend/models/best.pt")  # automatically loads full model
 model.eval()  # set to eval mode
 
 # Define preprocessing
