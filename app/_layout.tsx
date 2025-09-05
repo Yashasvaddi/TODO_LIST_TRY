@@ -1,29 +1,53 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Drawer } from 'expo-router/drawer';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
-
+export default function Layout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Drawer>
+        <Drawer.Screen
+          name="home/index" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Home',
+            title: 'Home',
+          }}
+        />
+        <Drawer.Screen
+          name="chatbot/index" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'ChatBot',
+            title: 'ChatBot',
+          }}
+        />
+        <Drawer.Screen
+          name="soil/index" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Soil Health',
+            title: 'Soil Health',
+          }}
+        />
+        <Drawer.Screen
+          name="market_prices/index" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Market Stats',
+            title: 'Market Stats',
+          }}
+        />
+        <Drawer.Screen
+          name="profile/index" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Profile',
+            title: 'Profile',
+          }}
+        />
+        <Drawer.Screen
+          name="settings/index" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Settings',
+            title: 'Settings',
+          }}
+        />
+      </Drawer>
+    </GestureHandlerRootView>
   );
 }
