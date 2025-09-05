@@ -1,7 +1,8 @@
 fastapi
 pydantic
-uvicorn
+uvicorn[standard]
 python-multipart
 twilio
 google-generativeai
 python-dotenv
+websockets
