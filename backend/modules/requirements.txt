@@ -6,3 +6,7 @@ twilio
 google-generativeai
 python-dotenv
 websockets
+ultralytics
+pillow
+torch
+torchvision

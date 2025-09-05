@@ -6,6 +6,12 @@ from twilio.rest import Client
 import os
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+import base64
+import io
+from PIL import Image
+from ultralytics import YOLO
+import torch
+from torchvision import transforms
 
 origins = [
     "*",  # or specify allowed frontend URLs
@@ -28,6 +34,43 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+model = YOLO("TODO_LIST_TRY\\backend\\models\\best.pt")  # automatically loads full model
+model.eval()  # set to eval mode
+
+# Define preprocessing
+preprocess = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    # Add normalization if your model expects it
+])
+
+@app.post("/predict")
+async def predict_image(request: Request):
+    data = await request.json()
+    if "image" not in data:
+        return {"error": "No image provided"}
+    
+    # Decode base64 string to bytes
+    image_bytes = base64.b64decode(data["image"])
+    
+    # Open as PIL image
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    
+    # Run YOLO inference
+    results = model(image)  
+    
+    # Extract results
+    boxes = results[0].boxes.xyxy.tolist()
+    confidences = results[0].boxes.conf.tolist()
+    classes = results[0].boxes.cls.tolist()
+
+    return {
+        "boxes": boxes,
+        "confidences": confidences,
+        "classes": classes
+    }
+
 groups={
     "group1":set(),
     "group2":set(),
