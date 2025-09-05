@@ -35,7 +35,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model = YOLO("backend/models/best.pt")  # automatically loads full model
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "..", "models", "best.pt")
+
+model = YOLO(MODEL_PATH)  # automatically loads full model
 model.eval()  # set to eval mode
 
 # Define preprocessing
