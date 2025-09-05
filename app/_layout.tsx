@@ -34,6 +34,13 @@ export default function Layout() {
           }}
         />
         <Drawer.Screen
+          name="forums/index" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Forums',
+            title: 'Forums',
+          }}
+        />
+        <Drawer.Screen
           name="profile/index" // This is the name of the page and must match the url from root
           options={{
             drawerLabel: 'Profile',
