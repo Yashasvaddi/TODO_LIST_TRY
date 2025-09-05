@@ -34,13 +34,12 @@ groups={
     "group3":set(),
     "group4":set(),    
 }
-connected_users = set()
 
 @app.websocket("/ws/{group_name}")
 async def websocket_endpoint(websocket: WebSocket,group_name:str):
     await websocket.accept()
-    connected_users.add(websocket)
-    print(f"New user connected to {group_name}. Total users: {len(connected_users)}")
+    groups[group_name].add(websocket)
+    print(f"New user connected to {group_name}. Total users: {len(groups[group_name])}")
     
     try:
         while True:
@@ -56,7 +55,7 @@ async def websocket_endpoint(websocket: WebSocket,group_name:str):
         print(f"User disconnected from {group_name}")
     finally:
         groups[group_name].remove(websocket)
-        print(f"Total users: {len(connected_users)}")
+        print(f"Total users: {len(groups[group_name])}")
 
 
 @app.post("/twilio-webhook")
