@@ -5,9 +5,13 @@ import google.generativeai as genai
 from twilio.rest import Client
 import os
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
+
+origins = [
+    "*",  # or specify allowed frontend URLs
+]
 
 load_dotenv()
-  # assign API key
 
 gemini_api_key=os.getenv('gemini_api_key')
 
@@ -16,6 +20,14 @@ genai.configure(api_key = gemini_api_key)
 model = genai.GenerativeModel('gemini-2.0-flash')
 
 app=FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 connected_users = set()
 
