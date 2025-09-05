@@ -1,4 +1,4 @@
-from fastapi import FastAPI,Request
+from fastapi import FastAPI,Request, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 import _asyncio
 import google.generativeai as genai
@@ -11,11 +11,37 @@ load_dotenv()
 
 gemini_api_key=os.getenv('gemini_api_key')
 
-genai.configure(api_key = gemini_api_key)  # no arguments
+genai.configure(api_key = gemini_api_key)
 
 model = genai.GenerativeModel('gemini-2.0-flash')
 
 app=FastAPI()
+
+connected_users = set()
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    connected_users.add(websocket)
+    print(f"New user connected. Total users: {len(connected_users)}")
+    
+    try:
+        while True:
+            message = await websocket.receive_text()
+            print(f"Received: {message}")
+
+            # Broadcast message to all other users
+            for user in connected_users:
+                if user != websocket:
+                    try:
+                        await user.send_text(message)
+                    except:
+                        pass
+    except WebSocketDisconnect:
+        print("User disconnected")
+    finally:
+        connected_users.remove(websocket)
+        print(f"Total users: {len(connected_users)}")
 
 
 @app.post("/twilio-webhook")
@@ -37,8 +63,7 @@ async def twilio_webhook(request: Request):
     body=f'{ans.text}',
     to='whatsapp:+919702120202'
 )
-
-
+    
     # Optionally send back a response to Twilio
     return {"status": "received", "body": body}
 
