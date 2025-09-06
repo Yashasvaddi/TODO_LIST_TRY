@@ -35,20 +35,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "..", "models", "best.pt")
-
-model = YOLO(MODEL_PATH)  # automatically loads full model
+model = YOLO("/home/yashas_vaddi12/TODO_LIST_TRY/backend/models/best.pt")  # automatically loads full model
 model.eval()  # set to eval mode
 
-# Define preprocessing
+# Define preprocessin
 preprocess = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     # Add normalization if your model expects it
 ])
 
-@app.post("/predict")
+@app.post("/sih/predict")
 async def predict_image(request: Request):
     data = await request.json()
     if "image" not in data:
@@ -81,7 +78,7 @@ groups={
     "group4":set(),    
 }
 
-@app.websocket("/ws/{group_name}")
+@app.websocket("/sih/ws/{group_name}")
 async def websocket_endpoint(websocket: WebSocket,group_name:str):
     await websocket.accept()
     groups[group_name].add(websocket)
@@ -104,7 +101,7 @@ async def websocket_endpoint(websocket: WebSocket,group_name:str):
         print(f"Total users: {len(groups[group_name])}")
 
 
-@app.post("/twilio-webhook")
+@app.post("/sih/twilio-webhook")
 async def twilio_webhook(request: Request):
     form = await request.form()
     from_number = form.get("From")
@@ -128,7 +125,7 @@ async def twilio_webhook(request: Request):
     return {"status": "received", "body": body}
 
 
-@app.post('/notjsontest')
+@app.post('/sih/notjsontest')
 def tester(value):
     print(value)
     return value
@@ -136,7 +133,7 @@ def tester(value):
 class value(BaseModel):
     text:str
 
-@app.post('/test')
+@app.post('/sih/test')
 def test(payload:value):
     print(payload.text)
     return payload.text
