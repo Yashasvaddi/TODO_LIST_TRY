@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import statesData from "../app/market_prices/data/states.json";
+import useUserLocation from "@/hooks/useUserLocation";
 
 interface MarketFormProps {
   selectedState: string;
@@ -32,13 +33,31 @@ export default function MarketForm({
   const [districtOpen, setDistrictOpen] = useState(false);
   const [districts, setDistricts] = useState<any[]>([]);
 
-  const stateItems = statesData.states.map((s) => ({ label: s.state, value: s.state }));
+  const { state: userState, district: userDistrict, loading: locationLoading } = useUserLocation();
+
+  useEffect(() => {
+    if (userState && userState !== selectedState) {
+      setSelectedState(userState);
+    }
+  }, [userState]);
 
   useEffect(() => {
     const found = statesData.states.find((s) => s.state === selectedState);
-    setDistricts(found ? found.districts.map((d) => ({ label: d, value: d })) : []);
-    if (!found) setSelectedDistrict("");
-  }, [selectedState]);
+    const newDistricts = found ? found.districts.map((d) => ({ label: d, value: d })) : [];
+    setDistricts(newDistricts);
+
+    // Only set userDistrict if it's inside the new list
+    if (found && userDistrict && found.districts.includes(userDistrict)) {
+      setSelectedDistrict(userDistrict);
+    } else if (!found) {
+      setSelectedDistrict("");
+    }
+  }, [selectedState, userDistrict]);
+
+  const stateItems = statesData.states.map((s) => ({
+    label: s.state,
+    value: s.state,
+  }));
 
   const handleSubmit = async () => {
     if (!selectedState || !selectedDistrict) {
@@ -67,6 +86,9 @@ export default function MarketForm({
     <View className="mb-4">
       {/* State Dropdown */}
       <View style={{ zIndex: 1000, marginBottom: 16 }}>
+        {locationLoading && (
+          <Text className="text-gray-500 text-sm mb-2">Detecting your location...</Text>
+        )}
         <Text className="text-black font-semibold mb-1">State</Text>
         <DropDownPicker
           open={stateOpen}
@@ -76,7 +98,8 @@ export default function MarketForm({
           setValue={setSelectedState}
           placeholder="Select a state"
           searchable={true}
-          listMode="MODAL" // opens as modal to avoid overlap
+          disabled={locationLoading}
+          listMode="MODAL"
           style={{ backgroundColor: "#FFFFFF", borderColor: "#08CB00" }}
           dropDownContainerStyle={{ backgroundColor: "#FFFFFF", borderColor: "#08CB00" }}
         />
@@ -94,7 +117,7 @@ export default function MarketForm({
           placeholder="Select a district"
           searchable={true}
           disabled={!selectedState}
-          listMode="MODAL" // opens as modal
+          listMode="MODAL"
           style={{ backgroundColor: "#FFFFFF", borderColor: "#08CB00" }}
           dropDownContainerStyle={{ backgroundColor: "#FFFFFF", borderColor: "#08CB00" }}
         />
@@ -115,7 +138,9 @@ export default function MarketForm({
         className={`mt-4 p-3 rounded-xl items-center ${loading ? "bg-gray-400" : "bg-[#08CB00]"}`}
         disabled={loading}
       >
-        <Text className="text-white font-semibold">{loading ? "Loading..." : "Fetch Prices"}</Text>
+        <Text className="text-white font-semibold">
+          {loading ? "Loading..." : "Fetch Prices"}
+        </Text>
       </TouchableOpacity>
     </View>
   );

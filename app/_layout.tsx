@@ -13,7 +13,6 @@ import ShowVideo from '@/components/ShowVideo';
 
 export default function Layout() {
   const { t } = useTranslation();
-
   const pathname = usePathname();
 
   const videoSources: Record<string, any> = {
@@ -36,7 +35,11 @@ export default function Layout() {
     { name: "settings/index", label: t("settings"), icon: <Ionicons name="settings-outline" size={24} className="mr-4" /> },
   ];
 
-  const CustomDrawerContent = ({ navigation }: any) => (
+
+const CustomDrawerContent = ({ navigation }: any) => {
+  const currentPage = pathname.replace("/", ""); // remove leading "/"
+
+  return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}
       <View style={{ backgroundColor: "#065f46", padding: 20, alignItems: "center" }}>
@@ -45,18 +48,34 @@ export default function Layout() {
 
       {/* Drawer Items */}
       <View style={{ marginTop: 20 }}>
-        {drawerItems.map((item) => (
-          <TouchableOpacity
-            key={item.name}
-            onPress={() => navigation.navigate(item.name)}
-            className="py-2 mt-3 mx-14 flex justify-center items-center rounded-lg mb-2 border-b-2 border-gray-400"
-          >
-            <Text className="text-2xl font-semibold pb-6">{item.icon}  <Text className="text-center">{item.label}</Text></Text>
-          </TouchableOpacity>
-        ))}
+        {drawerItems.map((item) => {
+          // normalize item name (e.g. "chatbot/index" → "chatbot")
+          const itemKey = item.name.split("/")[0];
+          const isActive = currentPage === itemKey;
+
+          return (
+            <TouchableOpacity
+              key={item.name}
+              onPress={() => navigation.navigate(item.name)}
+              className={`py-6 mx-14 flex justify-center items-center rounded-lg  border-b-2 ${
+                isActive ? "bg-green-700 border-green-900" : "border-gray-400"
+              }`}
+            >
+              <Text
+                className={`text-2xl font-semibold ${
+                  isActive ? "text-white" : "text-black"
+                }`}
+              >
+                {item.icon} <Text className="text-center">{item.label}</Text>
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
+};
+
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
