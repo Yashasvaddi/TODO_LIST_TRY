@@ -18,12 +18,12 @@ export default function Layout() {
 
   const videoSources: Record<string, any> = {
   //   "/home": require("../assets/videos/home.gif"),
-  //   "/chatbot": require("../assets/videos/chatbot.gif"),
-  //   // "/soil/index": require("../assets/videos/soil.gif"),
-    "/market_prices": require("../assets/videos/market_prices.gif"),
-  //   // "/forums/index": require("../assets/videos/forums.gif"),
-  //   // "/profile/index": require("../assets/videos/profile.gif"),
-  //   "/settings": require("../assets/videos/settings.gif"),
+    "/chatbot": require("../assets/videos/chatbot.mp4"),
+  //   // "/soil/index": require("../assets/videos/soil.mp4"),
+    "/market_prices": require("../assets/videos/market_prices.mp4"),
+  //   // "/forums/index": require("../assets/videos/forums.mp4"),
+  //   // "/profile/index": require("../assets/videos/profile.mp4"),
+    "/settings": require("../assets/videos/settings.mp4"),
   };
 
   const drawerItems = [
