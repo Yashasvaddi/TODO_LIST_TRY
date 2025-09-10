@@ -68,8 +68,10 @@ export default function MarketForm({
     setLoading(true);
 
     try {
-      const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=579b464db66ec23bdd0000013507ee8675774a6a5d0d35df6bc48393&format=json&filters[state.keyword]=${selectedState}&filters[district.keyword]=${selectedDistrict}&limit=20`;
+      const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${process.env.EXPO_PUBLIC_MANDI_KEY}&format=json&filters[state.keyword]=${selectedState}&filters[district.keyword]=${selectedDistrict}&limit=20`;
       const response = await fetch(url);
+      
+      
       const data = await response.json();
       console.log("API response:", data);
       setItems(data.records || []);
