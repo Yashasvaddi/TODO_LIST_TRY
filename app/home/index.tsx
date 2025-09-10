@@ -1,8 +1,35 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function HomeScreen() {
+
+
+  useEffect(() => {
+    async function callApi() {
+
+      const ques = {
+        Question: "What is this app?"
+      };
+
+      try {
+        const res = await fetch("https://www.codersmitramandal.shop/sih/chatbot", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(ques)
+        });
+        const data = await res.json();
+        console.log(data);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    callApi();
+  }, [])
+
+
   return (
     <ScrollView className="flex-1 bg-white p-4" showsVerticalScrollIndicator={false}>
 
