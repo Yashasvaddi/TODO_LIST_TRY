@@ -1,0 +1,352 @@
+{
+  "farms": [
+    {
+      "id": "farm_001",
+      "name": "Green Valley Farm",
+      "location": "North Region",
+      "area": 145.2,
+      "crop": "Wheat",
+      "owner": "John Smith",
+      "coordinates": "38.4575, -120.1205",
+      "status": "active",
+      "createdAt": "2023-01-15T10:30:00Z",
+      "lastUpdated": "2024-01-15T08:15:00Z"
+    },
+    {
+      "id": "farm_002",
+      "name": "Sunny Acres",
+      "location": "South Region",
+      "area": 98.7,
+      "crop": "Corn",
+      "owner": "Maria Garcia",
+      "coordinates": "38.4612, -120.1188",
+      "status": "active",
+      "createdAt": "2023-02-20T14:45:00Z",
+      "lastUpdated": "2024-01-14T16:20:00Z"
+    },
+    {
+      "id": "farm_003",
+      "name": "Mountain View Ranch",
+      "location": "East Region",
+      "area": 203.5,
+      "crop": "Soybeans",
+      "owner": "David Chen",
+      "coordinates": "38.4698, -120.1156",
+      "status": "inactive",
+      "createdAt": "2023-03-10T09:00:00Z",
+      "lastUpdated": "2024-01-10T12:30:00Z"
+    }
+  ],
+  "geoJson": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "farm_001",
+          "name": "Green Valley Farm",
+          "crop": "Wheat",
+          "area": "145.2 hectares",
+          "ndvi": 0.82,
+          "status": "healthy",
+          "owner": "John Smith"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-120.123, 38.456],
+            [-120.120, 38.456],
+            [-120.120, 38.459],
+            [-120.123, 38.459],
+            [-120.123, 38.456]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "farm_002",
+          "name": "Sunny Acres",
+          "crop": "Corn",
+          "area": "98.7 hectares",
+          "ndvi": 0.75,
+          "status": "moderate",
+          "owner": "Maria Garcia"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-120.118, 38.461],
+            [-120.115, 38.461],
+            [-120.115, 38.464],
+            [-120.118, 38.464],
+            [-120.118, 38.461]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "farm_003",
+          "name": "Mountain View Ranch",
+          "crop": "Soybeans",
+          "area": "203.5 hectares",
+          "ndvi": 0.68,
+          "status": "poor",
+          "owner": "David Chen"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-120.112, 38.466],
+            [-120.109, 38.466],
+            [-120.109, 38.470],
+            [-120.112, 38.470],
+            [-120.112, 38.466]
+          ]]
+        }
+      }
+    ]
+  },
+  "ndviTimeSeries": [
+    {
+      "farmId": "farm_001",
+      "data": [
+        {"date": "2024-01-01", "ndvi": 0.65, "coverage": 89.3},
+        {"date": "2024-01-05", "ndvi": 0.68, "coverage": 91.2},
+        {"date": "2024-01-10", "ndvi": 0.72, "coverage": 88.7},
+        {"date": "2024-01-15", "ndvi": 0.75, "coverage": 92.1},
+        {"date": "2024-01-20", "ndvi": 0.78, "coverage": 89.8},
+        {"date": "2024-01-25", "ndvi": 0.82, "coverage": 93.4},
+        {"date": "2024-01-30", "ndvi": 0.79, "coverage": 90.6}
+      ]
+    },
+    {
+      "farmId": "farm_002",
+      "data": [
+        {"date": "2024-01-01", "ndvi": 0.58, "coverage": 85.2},
+        {"date": "2024-01-05", "ndvi": 0.62, "coverage": 87.1},
+        {"date": "2024-01-10", "ndvi": 0.66, "coverage": 84.8},
+        {"date": "2024-01-15", "ndvi": 0.70, "coverage": 88.3},
+        {"date": "2024-01-20", "ndvi": 0.73, "coverage": 86.7},
+        {"date": "2024-01-25", "ndvi": 0.75, "coverage": 89.2},
+        {"date": "2024-01-30", "ndvi": 0.72, "coverage": 87.5}
+      ]
+    }
+  ],
+  "weatherData": [
+    {
+      "id": "weather_001",
+      "farmId": "farm_001",
+      "date": "2024-01-15",
+      "temperature": 24.5,
+      "humidity": 68,
+      "rainfall": 12.3,
+      "windSpeed": 8.2,
+      "conditions": "Partly Cloudy",
+      "uvIndex": 6,
+      "soilTemperature": 18.2,
+      "dewPoint": 16.8
+    },
+    {
+      "id": "weather_002",
+      "farmId": "farm_002",
+      "date": "2024-01-15",
+      "temperature": 26.1,
+      "humidity": 72,
+      "rainfall": 8.7,
+      "windSpeed": 6.5,
+      "conditions": "Clear",
+      "uvIndex": 8,
+      "soilTemperature": 19.5,
+      "dewPoint": 18.3
+    },
+    {
+      "id": "weather_003",
+      "farmId": "farm_003",
+      "date": "2024-01-15",
+      "temperature": 22.8,
+      "humidity": 75,
+      "rainfall": 15.6,
+      "windSpeed": 9.1,
+      "conditions": "Light Rain",
+      "uvIndex": 4,
+      "soilTemperature": 17.1,
+      "dewPoint": 17.9
+    }
+  ],
+  "marketData": [
+    {
+      "id": "market_001",
+      "commodity": "Wheat",
+      "price": 285.50,
+      "currency": "USD",
+      "unit": "per ton",
+      "change": "+2.3%",
+      "changeValue": 6.42,
+      "market": "Chicago Board of Trade",
+      "lastUpdated": "2024-01-15T14:30:00Z",
+      "volume": 125000,
+      "openPrice": 283.20,
+      "highPrice": 287.10,
+      "lowPrice": 281.80
+    },
+    {
+      "id": "market_002",
+      "commodity": "Corn",
+      "price": 220.75,
+      "currency": "USD",
+      "unit": "per ton",
+      "change": "-1.2%",
+      "changeValue": -2.68,
+      "market": "Chicago Board of Trade",
+      "lastUpdated": "2024-01-15T14:30:00Z",
+      "volume": 98000,
+      "openPrice": 222.30,
+      "highPrice": 224.15,
+      "lowPrice": 219.90
+    },
+    {
+      "id": "market_003",
+      "commodity": "Soybeans",
+      "price": 425.20,
+      "currency": "USD",
+      "unit": "per ton",
+      "change": "+0.8%",
+      "changeValue": 3.38,
+      "market": "Chicago Board of Trade",
+      "lastUpdated": "2024-01-15T14:30:00Z",
+      "volume": 67000,
+      "openPrice": 423.50,
+      "highPrice": 426.80,
+      "lowPrice": 422.10
+    }
+  ],
+  "alerts": [
+    {
+      "id": "alert_001",
+      "type": "weather",
+      "severity": "high",
+      "title": "Heavy Rain Warning",
+      "description": "Expected rainfall of 45mm in the next 6 hours at Green Valley Farm. Flood risk in low-lying areas.",
+      "farmId": "farm_001",
+      "farmName": "Green Valley Farm",
+      "timestamp": "2024-01-15T08:30:00Z",
+      "status": "active",
+      "affectedArea": "145.2 hectares",
+      "actionRequired": "Implement drainage measures and move equipment to higher ground",
+      "estimatedImpact": "High risk of crop damage",
+      "contactPerson": "John Smith",
+      "contactPhone": "+1-555-0101"
+    },
+    {
+      "id": "alert_002",
+      "type": "pest",
+      "severity": "medium",
+      "title": "Pest Activity Detected",
+      "description": "Increased aphid activity observed in corn fields via satellite imagery analysis. Population exceeding threshold levels.",
+      "farmId": "farm_002",
+      "farmName": "Sunny Acres",
+      "timestamp": "2024-01-15T07:15:00Z",
+      "status": "acknowledged",
+      "affectedArea": "32.1 hectares",
+      "actionRequired": "Schedule pest control inspection within 48 hours",
+      "estimatedImpact": "Potential 15-20% yield reduction if untreated",
+      "contactPerson": "Maria Garcia",
+      "contactPhone": "+1-555-0102"
+    },
+    {
+      "id": "alert_003",
+      "type": "irrigation",
+      "severity": "low",
+      "title": "Irrigation System Maintenance",
+      "description": "Routine maintenance reminder for irrigation system sector 3. Pump efficiency below optimal levels.",
+      "farmId": "farm_003",
+      "farmName": "Mountain View Ranch",
+      "timestamp": "2024-01-15T06:00:00Z",
+      "status": "resolved",
+      "affectedArea": "12.8 hectares",
+      "actionRequired": "Maintenance completed - system operating normally",
+      "estimatedImpact": "No impact - preventive maintenance",
+      "contactPerson": "David Chen",
+      "contactPhone": "+1-555-0103"
+    },
+    {
+      "id": "alert_004",
+      "type": "disease",
+      "severity": "high",
+      "title": "Disease Risk Assessment",
+      "description": "High probability of wheat rust based on weather conditions and NDVI analysis. Optimal conditions for spore germination detected.",
+      "farmId": "farm_001",
+      "farmName": "Green Valley Farm",
+      "timestamp": "2024-01-14T16:45:00Z",
+      "status": "active",
+      "affectedArea": "89.3 hectares",
+      "actionRequired": "Apply fungicide treatment immediately",
+      "estimatedImpact": "Potential 30-40% yield loss if untreated",
+      "contactPerson": "John Smith",
+      "contactPhone": "+1-555-0101"
+    },
+    {
+      "id": "alert_005",
+      "type": "market",
+      "severity": "medium",
+      "title": "Price Drop Alert",
+      "description": "Corn prices have dropped 5% below your configured threshold of $230/ton. Consider storage options or alternative marketing strategies.",
+      "farmId": "farm_002",
+      "farmName": "Sunny Acres",
+      "timestamp": "2024-01-14T14:20:00Z",
+      "status": "acknowledged",
+      "affectedArea": "All corn inventory (estimated 1,200 tons)",
+      "actionRequired": "Review selling strategy and storage capacity",
+      "estimatedImpact": "Revenue reduction of approximately $12,000",
+      "contactPerson": "Maria Garcia",
+      "contactPhone": "+1-555-0102"
+    }
+  ],
+  "powerbiReports": [
+    {
+      "id": "crop-analytics",
+      "name": "Crop Analytics Dashboard",
+      "description": "Comprehensive crop performance and yield analysis",
+      "status": "ready",
+      "lastUpdated": "2024-01-15T10:30:00Z",
+      "embedUrl": "https://app.powerbi.com/reportEmbed?reportId=mock-crop-analytics",
+      "datasetId": "crop-dataset-001",
+      "workspaceId": "workspace-001",
+      "reportType": "standard"
+    },
+    {
+      "id": "weather-insights",
+      "name": "Weather & Climate Insights",
+      "description": "Weather patterns and climate impact analysis",
+      "status": "ready",
+      "lastUpdated": "2024-01-15T09:15:00Z",
+      "embedUrl": "https://app.powerbi.com/reportEmbed?reportId=mock-weather-insights",
+      "datasetId": "weather-dataset-001",
+      "workspaceId": "workspace-001",
+      "reportType": "standard"
+    },
+    {
+      "id": "market-analysis",
+      "name": "Market Price Analysis",
+      "description": "Commodity prices and market trend analysis",
+      "status": "updating",
+      "lastUpdated": "2024-01-15T08:45:00Z",
+      "embedUrl": "https://app.powerbi.com/reportEmbed?reportId=mock-market-analysis",
+      "datasetId": "market-dataset-001",
+      "workspaceId": "workspace-001",
+      "reportType": "realtime"
+    }
+  ],
+  "systemMetrics": {
+    "totalFarms": 3,
+    "activeFarms": 2,
+    "totalArea": 447.4,
+    "averageNDVI": 0.75,
+    "activeAlerts": 2,
+    "lastDataUpdate": "2024-01-15T14:30:00Z",
+    "systemStatus": "operational",
+    "apiVersion": "1.0.0"
+  }
+}
