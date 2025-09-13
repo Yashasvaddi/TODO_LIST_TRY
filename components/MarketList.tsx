@@ -23,7 +23,7 @@ export default function MarketList({item}: MarketListProps ) {
       </Text>
       <Text style={{ color: "#000000" }}>State: {item.state}</Text>
       <Text style={{ color: "#000000" }}>District: {item.district}</Text>
-      <Text style={{ color: "#000000" }}>Market name: {item.market}</Text>
+      <Text style={{ color: "#000000" }}>Market name: {item.market} <Text> / quintal</Text></Text>
       <Text style={{ color: "#08CB00", fontWeight: "700", marginTop: 4 }}>
         ₹ {item.modal_price}
       </Text>

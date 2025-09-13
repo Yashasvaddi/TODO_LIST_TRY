@@ -88,9 +88,9 @@ const CustomDrawerContent = ({ navigation }: any) => {
               drawerLabel: item.label, title: item.label,
               headerStyle: { backgroundColor: "#065f46" },
               headerTintColor: "#fff",
-              headerRight: () => (
-                <ShowVideo source={videoSources[pathname]} />
-              ),
+              // headerRight: () => (
+              //   <ShowVideo source={videoSources[pathname]} />
+              // ),
             }}
           />
         ))}
