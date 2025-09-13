@@ -1,0 +1,6 @@
+fastapi==0.116.1
+huggingface_hub==0.29.2
+keras==3.11.3
+numpy==2.3.3
+Pillow==11.3.0
+pydantic==2.11.9
