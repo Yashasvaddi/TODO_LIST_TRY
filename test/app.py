@@ -18,6 +18,7 @@ async def detect_disease_from_base64(payload: ImagePayload):
 
     image_bytes = base64.b64decode(payload.image_base64)
     disease, confidence = predict_disease(image_bytes)
+    print(disease)
     return {
         "predicted_disease": disease,
         "confidence": f"{confidence:.2f}"
