@@ -43,9 +43,11 @@ export default function Layout() {
     { name: "chatbot/index", label: t("chatBot"), icon: <Ionicons name="chatbubbles-outline" size={24} className="mr-4" /> },
     { name: "soil/index", label: t("soilHealth"), icon: <MaterialIcons name="grass" size={24} className="mr-4" /> },
     { name: "market_prices/index", label: t("marketStats"), icon: <FontAwesome name="line-chart" size={24} className="mr-4" /> },
-    { name: "forums/index", label: t("forums"), icon: <Ionicons name="people-outline" size={24} className="mr-4" /> },
+    { name: "forums", label: t("forums"), icon: <Ionicons name="people-outline" size={24} className="mr-4" /> },
     { name: "profile/index", label: t("profile"), icon: <FontAwesome name="user" size={24} className="mr-4" /> },
     { name: "settings/index", label: t("settings"), icon: <Ionicons name="settings-outline" size={24} className="mr-4" /> },
+    { name: "finanical_calc/index", label: t("Calculator"), icon: <Ionicons name="settings-outline" size={24} className="mr-4" /> },
+
   ];
 
 
