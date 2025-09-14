@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import * as Progress from "react-native-progress";
+import Markdown from 'react-native-markdown-display';
 
 interface locProps {
   coords: {
@@ -13,7 +14,11 @@ interface locProps {
   >;
 }
 
-export default function LocationCrop({ coords, setCoords, details }: locProps) {
+export default function LocationCrop({ coords, details }: locProps) {
+
+  const [response, setResponse] = useState("Suggestions will appear here")
+  const [load, setLoad] = useState(false)
+
   // 🌈 Helper to color confidence bars
   const getBarColor = (confidence: number) => {
     if (confidence >= 0.6) return "#22c55e"; // green-500
@@ -21,13 +26,57 @@ export default function LocationCrop({ coords, setCoords, details }: locProps) {
     return "#ef4444"; // red-500
   };
 
+
+  useEffect(() => {
+    if (!details) return;
+
+    let prompt = JSON.stringify(details)
+
+    async function geminiRes() {
+      setLoad(true);
+      try {
+        const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-goog-api-key": `${process.env.EXPO_PUBLIC_GEMINI_KEY}`
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: `${prompt}, this is the given information, give suggestions in easy language for a farmer that is short and tells them what to do in short in hindi language` }]
+              }
+            ]
+          })
+        });
+        const data = await res.json();
+        console.log(data);
+
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+
+        setResponse(text);
+      } catch (err) {
+        console.log("Error calling GenAI:", err);
+        setResponse("Error fetching response");
+      } finally {
+        setLoad(false);
+      }
+    }
+
+    geminiRes(); // ✅ Call the function
+  }, [details]);
+
   return (
     <View className="p-4 m-4 rounded-2xl bg-white shadow-md border border-gray-200">
       {/* 📍 Location */}
       <Text className="text-xl font-bold text-gray-800 mb-3">📍 Location</Text>
       <View className="mb-4">
-        <Text className="text-gray-600">Lat: {coords.lat.toFixed(2)}</Text>
-        <Text className="text-gray-600">Lon: {coords.lon.toFixed(2)}</Text>
+        <Text className="text-gray-600">
+          Lat: {coords?.lat !== undefined ? coords.lat.toFixed(2) : "--"}
+        </Text>
+        <Text className="text-gray-600">
+          Lon: {coords?.lon !== undefined ? coords.lon.toFixed(2) : "--"}
+        </Text>
         <Text className="text-gray-600">District: {details?.locationInfo?.district ?? "--"}</Text>
         <Text className="text-gray-600">State: {details?.locationInfo?.state ?? "--"}</Text>
       </View>
@@ -59,7 +108,7 @@ export default function LocationCrop({ coords, setCoords, details }: locProps) {
 
       {details?.crop_recommendations?.length > 0 ? (
         details.crop_recommendations.map((item: any, ind: number) => {
-          const confidence = parseFloat(item.confidence.toFixed(2));
+          const confidence = parseFloat(item.confidence != null ? item.confidence.toFixed(2) : "0");
           return (
             <View
               key={ind}
@@ -90,6 +139,14 @@ export default function LocationCrop({ coords, setCoords, details }: locProps) {
           No crop recommendations yet...
         </Text>
       )}
+
+      <View className="text-xl font-bold text-gray-800 mt-6 mb-3">
+        {load ? (
+          <Text className="text-gray-500 italic">Generating suggestions...</Text>
+        ) : (
+          <Markdown>{response}</Markdown>
+        )}
+      </View>
     </View>
   );
 }

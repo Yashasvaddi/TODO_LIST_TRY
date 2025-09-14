@@ -8,12 +8,25 @@ import "../i18n";
 import { useTranslation } from "react-i18next";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { usePathname } from "expo-router";
-import ShowVideo from '@/components/ShowVideo';
+import useUserLocation from "@/hooks/useUserLocation";
+// import ShowVideo from '@/components/ShowVideo';
 
 
 export default function Layout() {
   const { t } = useTranslation();
   const pathname = usePathname();
+
+  const { loading } = useUserLocation();
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Fetching your location...</Text>
+      </View>
+    );
+  }
+
+  
 
   const videoSources: Record<string, any> = {
   //   "/home": require("../assets/videos/home.gif"),

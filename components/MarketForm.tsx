@@ -1,148 +1,146 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
+import React, { useState, useMemo } from "react";
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, FlatList, Modal } from "react-native";
 import statesData from "../app/market_prices/data/states.json";
+import { useLocationStore } from "../store/locationStore";
 import useUserLocation from "@/hooks/useUserLocation";
 
 interface MarketFormProps {
-  selectedState: string;
-  setSelectedState: (state: string) => void;
-  selectedDistrict: string;
-  setSelectedDistrict: (district: string) => void;
   crop: string;
   setCrop: (text: string) => void;
-  items: any[];
-  setItems: (data: any[]) => void;
+  setItems: (data: any) => void;
   loading: boolean;
   setLoading: (loading: boolean) => void;
 }
 
 export default function MarketForm({
-  selectedState,
-  setSelectedState,
-  selectedDistrict,
-  setSelectedDistrict,
   crop,
   setCrop,
-  items,
   setItems,
   loading,
   setLoading,
 }: MarketFormProps) {
-  const [stateOpen, setStateOpen] = useState(false);
-  const [districtOpen, setDistrictOpen] = useState(false);
-  const [districts, setDistricts] = useState<any[]>([]);
+  const { state, district, setState, setDistrict } = useLocationStore();
+  const { loading: locationLoading } = useUserLocation();
 
-  const { state: userState, district: userDistrict, loading: locationLoading } = useUserLocation();
+  const [stateDropdownVisible, setStateDropdownVisible] = useState(false);
+  const [districtDropdownVisible, setDistrictDropdownVisible] = useState(false);
 
-  useEffect(() => {
-    if (userState && userState !== selectedState) {
-      setSelectedState(userState);
-    }
-  }, [userState]);
-
-  useEffect(() => {
-    const found = statesData.states.find((s) => s.state === selectedState);
-    const newDistricts = found ? found.districts.map((d) => ({ label: d, value: d })) : [];
-    setDistricts(newDistricts);
-
-    // Only set userDistrict if it's inside the new list
-    if (found && userDistrict && found.districts.includes(userDistrict)) {
-      setSelectedDistrict(userDistrict);
-    } else if (!found) {
-      setSelectedDistrict("");
-    }
-  }, [selectedState, userDistrict]);
-
-  const stateItems = statesData.states.map((s) => ({
-    label: s.state,
-    value: s.state,
-  }));
+  const districts = useMemo(() => {
+    const found = statesData.states.find((s) => s.state === state);
+    return found ? found.districts : [];
+  }, [state]);
 
   const handleSubmit = async () => {
-    if (!selectedState || !selectedDistrict) {
+    if (!state || !district || !crop) {
       Alert.alert("Error", "Please fill all fields before submitting");
       return;
     }
 
     setLoading(true);
-
     try {
-      const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${process.env.EXPO_PUBLIC_MANDI_KEY}&format=json&filters[state.keyword]=${selectedState}&filters[district.keyword]=${selectedDistrict}&limit=20`;
-      const response = await fetch(url);
+      console.log(state, district);
       
-      
+      const apiBody = { state, district, commodity: crop };
+      const response = await fetch("https://www.codersmitramandal.shop/sih/marketprice/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apiBody),
+      });
       const data = await response.json();
-      console.log("API response:", data);
-      setItems(data.records || []);
-      Alert.alert("Success", "Data fetched successfully!");
+      setItems(data || {});
+      console.log("Fetched:", data);
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Failed to fetch data");
+      Alert.alert("Error", "Failed to fetch data.");
     } finally {
       setLoading(false);
     }
   };
 
+  const renderDropdown = (visible: boolean, setVisible: any, options: string[], onSelect: (val: string) => void) => (
+    <Modal visible={visible} transparent animationType="fade">
+      <TouchableOpacity
+        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)", justifyContent: "center", alignItems: "center" }}
+        activeOpacity={1}
+        onPress={() => setVisible(false)}
+      >
+        <View style={{ width: 260, backgroundColor: "#fff", borderRadius: 12, maxHeight: 320 }}>
+          <FlatList
+            data={options}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={{ padding: 14, borderBottomColor: "#eee", borderBottomWidth: 1 }}
+                onPress={() => {
+                  onSelect(item);
+                  setVisible(false);
+                }}
+              >
+                <Text style={{ fontSize: 16 }}>{item}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+
   return (
-    <View className="mb-4">
-      {/* State Dropdown */}
-      <View style={{ zIndex: 1000, marginBottom: 16 }}>
-        {locationLoading && (
-          <Text className="text-gray-500 text-sm mb-2">Detecting your location...</Text>
-        )}
-        <Text className="text-black font-semibold mb-1">State</Text>
-        <DropDownPicker
-          open={stateOpen}
-          value={selectedState}
-          items={stateItems}
-          setOpen={setStateOpen}
-          setValue={setSelectedState}
-          placeholder="Select a state"
-          searchable={true}
-          disabled={locationLoading}
-          listMode="MODAL"
-          style={{ backgroundColor: "#FFFFFF", borderColor: "#08CB00" }}
-          dropDownContainerStyle={{ backgroundColor: "#FFFFFF", borderColor: "#08CB00" }}
-        />
+    <View style={{ marginBottom: 20 }}>
+      {/* State Picker */}
+      <View style={{ marginBottom: 16 }}>
+        {locationLoading && <Text style={{ color: "#777" }}>Detecting location…</Text>}
+        <Text style={{ fontWeight: "600", fontSize: 16, marginBottom: 6 }}>State</Text>
+        <TouchableOpacity
+          onPress={() => setStateDropdownVisible(true)}
+          style={{ padding: 14, backgroundColor: "#f9f9f9", borderColor: "#08CB00", borderWidth: 1, borderRadius: 12 }}
+        >
+          <Text style={{ fontSize: 15, color: state ? "#000" : "#aaa" }}>{state || "Select a state"}</Text>
+        </TouchableOpacity>
+        {renderDropdown(stateDropdownVisible, setStateDropdownVisible, statesData.states.map(s => s.state), setState)}
       </View>
 
-      {/* District Dropdown */}
-      <View style={{ zIndex: 900, marginBottom: 16 }}>
-        <Text className="text-black font-semibold mb-1">District</Text>
-        <DropDownPicker
-          open={districtOpen}
-          value={selectedDistrict}
-          items={districts}
-          setOpen={setDistrictOpen}
-          setValue={setSelectedDistrict}
-          placeholder="Select a district"
-          searchable={true}
-          disabled={!selectedState}
-          listMode="MODAL"
-          style={{ backgroundColor: "#FFFFFF", borderColor: "#08CB00" }}
-          dropDownContainerStyle={{ backgroundColor: "#FFFFFF", borderColor: "#08CB00" }}
-        />
+      {/* District Picker */}
+      <View style={{ marginBottom: 16 }}>
+        <Text style={{ fontWeight: "600", fontSize: 16, marginBottom: 6 }}>District</Text>
+        <TouchableOpacity
+          onPress={() => setDistrictDropdownVisible(true)}
+          style={{ padding: 14, backgroundColor: "#f9f9f9", borderColor: "#08CB00", borderWidth: 1, borderRadius: 12 }}
+          disabled={!state}
+        >
+          <Text style={{ fontSize: 15, color: district ? "#000" : "#aaa" }}>{district || "Select a district"}</Text>
+        </TouchableOpacity>
+        {renderDropdown(districtDropdownVisible, setDistrictDropdownVisible, districts, setDistrict)}
       </View>
 
-      {/* Crop */}
+      {/* Crop Input */}
       <TextInput
         placeholder="Crop"
         value={crop}
         onChangeText={setCrop}
-        className="p-3 mb-2 rounded-xl bg-white border"
-        style={{ borderColor: "#08CB00", color: "#000000" }}
+        style={{
+          padding: 14,
+          borderRadius: 12,
+          backgroundColor: "#f9f9f9",
+          borderWidth: 1,
+          borderColor: "#08CB00",
+          fontSize: 15,
+          marginBottom: 20,
+        }}
       />
 
       {/* Submit */}
       <TouchableOpacity
         onPress={handleSubmit}
-        className={`mt-4 p-3 rounded-xl items-center ${loading ? "bg-gray-400" : "bg-[#08CB00]"}`}
-        disabled={loading}
+        disabled={loading || !state || !district || !crop}
+        style={{
+          padding: 14,
+          borderRadius: 12,
+          backgroundColor: loading || !state || !district || !crop ? "#ccc" : "#08CB00",
+          alignItems: "center",
+        }}
       >
-        <Text className="text-white font-semibold">
-          {loading ? "Loading..." : "Fetch Prices"}
-        </Text>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>Fetch Prices</Text>}
       </TouchableOpacity>
     </View>
   );

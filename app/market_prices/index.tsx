@@ -8,16 +8,12 @@ export default function MarketPrices() {
   const [selectedState, setSelectedState] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [crop, setCrop] = useState("");
-  const [variety, setVariety] = useState("");
-
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
 
   return (
     <View className="flex-1 bg-gray-100 mt-6">
-      {/* Header */}
-
       {/* Collapsible Form Card */}
       <View className="mx-4 bg-white rounded-3xl border border-gray-400 overflow-hidden mb-4">
         <TouchableOpacity
@@ -41,8 +37,6 @@ export default function MarketPrices() {
               setSelectedDistrict={setSelectedDistrict}
               crop={crop}
               setCrop={setCrop}
-              variety={variety}
-              setVariety={setVariety}
               items={items}
               setItems={setItems}
               loading={loading}
@@ -54,27 +48,29 @@ export default function MarketPrices() {
 
       {/* List */}
       <View className="flex-1 bg-white/60 backdrop-blur-sm rounded-t-3xl shadow-lg border-t border-green-100">
+        {items && items.commodity && (
+          <View style={{ padding: 16 }}>
+            <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+              Commodity: {items.commodity}
+            </Text>
+            <Text>State: {items.state}</Text>
+            <Text>District: {items.district}</Text>
+            <Text>Prediction Date: {items.prediction_date}</Text>
+          </View>
+        )}
+
         <FlatList
-          data={items}
+          data={items?.markets || []}
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => <MarketList item={item} />}
-          contentContainerStyle={{ paddingTop: 20, paddingBottom: 200, paddingHorizontal: 4 }}
+          renderItem={({ item }) => (
+            <MarketList item={item} prediction_date={items.prediction_date} />
+          )}
+          contentContainerStyle={{
+            paddingTop: 20,
+            paddingBottom: 200,
+            paddingHorizontal: 8,
+          }}
           showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            !loading && (
-              <View className="items-center justify-center py-16">
-                <View className="bg-gray-100 rounded-full w-20 h-20 items-center justify-center mb-4">
-                  <Text className="text-4xl">📊</Text>
-                </View>
-                <Text className="text-gray-600 text-lg font-medium text-center">
-                  No records found
-                </Text>
-                <Text className="text-gray-400 text-sm text-center mt-2">
-                  Try adjusting your search criteria
-                </Text>
-              </View>
-            )
-          }
         />
       </View>
     </View>

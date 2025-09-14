@@ -2,8 +2,12 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, ScrollView, TextInput } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { useLocationStore } from "@/store/locationStore";
 
 export default function ProfileScreen() {
+
+  const {district, state} = useLocationStore()
+
   return (
     <ScrollView className="flex-1 bg-gray-100">
       {/* Header Banner */}
@@ -43,7 +47,7 @@ export default function ProfileScreen() {
           </View>
           <View className="flex-row items-center">
             <Ionicons name="location-outline" size={22} color="#065f46" />
-            <Text className="ml-2 text-gray-700">Location: Pune, Maharashtra</Text>
+            <Text className="ml-2 text-gray-700">Location: {district}, {state}</Text>
           </View>
         </View>
 
