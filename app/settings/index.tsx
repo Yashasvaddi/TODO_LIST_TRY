@@ -2,13 +2,20 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Switch } from "react-native";
 import { useTranslation } from "react-i18next";
+import { LanguageStore } from "@/store/languageStore";
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
 
-  const changeLanguage = (lng: "en" | "hi") => {
+  const {language, setLanguage} = LanguageStore();
+
+  const changeLanguage = (lng: "en" | "hi" | "ma") => {
+    if(lng === "en") setLanguage("english")
+    if(lng === "hi") setLanguage("hindi")
+    if(lng === "ma") setLanguage("marathi")
+
     i18n.changeLanguage(lng); // dynamically changes language
   };
 
@@ -30,11 +37,20 @@ export default function Settings() {
 
         <TouchableOpacity
           onPress={() => changeLanguage("hi")}
-          className={`px-4 py-2 rounded border ${
+          className={`px-4 py-2 mr-2 rounded border ${
             i18n.language === "hi" ? "bg-green-600 border-green-600" : "bg-white border-gray-300"
           }`}
         >
           <Text className={i18n.language === "hi" ? "text-white" : "text-black"}>{t("hindi")}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => changeLanguage("ma")}
+          className={`px-4 py-2 mr-2 rounded border ${
+            i18n.language === "ma" ? "bg-green-600 border-green-600" : "bg-white border-gray-300"
+          }`}
+        >
+          <Text className={i18n.language === "ma" ? "text-white" : "text-black"}>{t("Marathi")}</Text>
         </TouchableOpacity>
       </View>
 

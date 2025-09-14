@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Linking, Image, Modal, ActivityIndicator } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useLocationStore } from "@/store/locationStore";
+import { LanguageStore } from "@/store/languageStore";
 
 export default function HomeScreen() {
   const [weather, setWeather] = useState<any>(null);
@@ -10,10 +12,13 @@ export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(true);
   const [loadingNews, setLoadingNews] = useState(true);
 
+  const { latitude: initialLat, longitude: initialLong } = useLocationStore();
+  const { language } = LanguageStore();
+
   useEffect(() => {
     async function fetchWeather() {
-      const lat = 28.6139; // Example: Delhi latitude
-      const lon = 77.2090; // Example: Delhi longitude
+      const lat = initialLat; // Example: Delhi latitude
+      const lon = initialLong; // Example: Delhi longitude
       const apiKey = "e815fdaf6c512348023aee21fccdada5"; // ⬅️ Replace with your OpenWeather API key
 
       try {
@@ -37,7 +42,7 @@ export default function HomeScreen() {
         const res = await fetch("https://www.codersmitramandal.shop/sih/news", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lang: "english" }), // you can change to "hindi" / "english"
+          body: JSON.stringify({ lang: language }), // you can change to "hindi" / "english"
         });
         const data = await res.json();
         setNews(data);
@@ -47,42 +52,11 @@ export default function HomeScreen() {
         setLoadingNews(false);
       }
     }
-
     fetchNews();
-  }, []);
+  }, [language]);
 
   return (
     <>
-      {/* 🔹 POPUP MODAL */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View className="flex-1 bg-black/40 justify-center items-center px-6">
-          <View className="bg-white rounded-2xl p-5 w-full max-h-[70%]">
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-lg font-bold text-gray-800">आजची बातमी</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="black" />
-              </TouchableOpacity>
-            </View>
-
-            {loadingNews ? (
-            <ActivityIndicator size="large" color="#f59e0b" />
-          ) : news ? (
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {news.NEWS ? (
-                <Text className="text-gray-700">
-                  {news.NEWS.replace(/\*\*/g, "").replace(/\\n/g, "\n").trim()}
-                </Text>
-              ) : (
-                <Text className="text-gray-700">{JSON.stringify(news)}</Text>
-              )}
-            </ScrollView>
-          ) : (
-            <Text className="text-gray-500">No news available.</Text>
-          )}
-
-          </View>
-        </View>
-      </Modal>
 
       {/* 🔹 YOUR ORIGINAL CODE STARTS HERE (unchanged) */}
       <ScrollView className="flex-1 bg-white p-4" showsVerticalScrollIndicator={false}>
@@ -93,27 +67,58 @@ export default function HomeScreen() {
             <Ionicons name="notifications-outline" size={24} color="#4b5563" />
           </TouchableOpacity>
         </View>
+        {/* NEWS Carousel */}
+        <View className="mb-6 bg-white rounded-2xl w-full shadow-lg">
+          {/* Header */}
+          <View className="flex-row justify-between items-center px-4 pt-4 pb-2">
+            <Text className="text-xl font-bold text-gray-900">आजची बातमी</Text>
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              className="p-1 rounded-full bg-gray-100"
+            >
+              <Ionicons name="close" size={22} color="#374151" />
+            </TouchableOpacity>
+          </View>
 
-        {/* Horizontal Crop Buttons ScrollView */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ alignItems: "center", paddingHorizontal: 4 }}
-          className="mb-10"
-        >
-          <TouchableOpacity className="w-24 h-8 bg-gray-200 rounded-full justify-center items-center">
-            <Text className="text-gray-700 text-sm">Overview</Text>
-          </TouchableOpacity>
-          <TouchableOpacity className="w-24 h-8 bg-amber-500 rounded-full justify-center items-center ml-2">
-            <Text className="text-white text-sm font-semibold">Corn 🌽</Text>
-          </TouchableOpacity>
-          <TouchableOpacity className="w-24 h-8 bg-gray-200 rounded-full justify-center items-center ml-2">
-            <Text className="text-gray-700 text-sm">Wheat 🌾</Text>
-          </TouchableOpacity>
-          <TouchableOpacity className="w-24 h-8 bg-gray-200 rounded-full justify-center items-center ml-2">
-            <Text className="text-gray-700 text-sm">Barley 🌱</Text>
-          </TouchableOpacity>
-        </ScrollView>
+          {/* Content */}
+          {loadingNews ? (
+            <View className="flex-1 justify-center items-center py-6">
+              <ActivityIndicator size="large" color="#f59e0b" />
+              <Text className="text-gray-500 mt-3">लोड होत आहे…</Text>
+            </View>
+          ) : news && Array.isArray(news.NEWS) ? (
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              className="w-full"
+              contentContainerStyle={{ paddingHorizontal: 16 }}
+            >
+              {news.NEWS.map((item: string, index: number) => (
+                <View
+                  key={index}
+                  className="w-[300px] mx-2 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl p-4 shadow-md"
+                >
+                  <Text className="text-base leading-6 text-gray-800">
+                    {item.replace(/\*\*/g, "").replace(/\\n/g, "\n").trim()}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          ) : news?.NEWS ? (
+            <View className="px-4 pb-4">
+              <Text className="text-base leading-6 text-gray-700">
+                {news.NEWS.replace(/\*\*/g, "").replace(/\\n/g, "\n").trim()}
+              </Text>
+            </View>
+          ) : (
+            <View className="py-6 items-center">
+              <Text className="text-gray-400">No news available.</Text>
+            </View>
+          )}
+        </View>
+
+
 
         {/* Weather Card */}
         <View className="bg-gray-100 rounded-xl p-4 mb-8 shadow-sm">

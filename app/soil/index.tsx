@@ -4,6 +4,7 @@ import WebMap from "../../components/WebMap";
 import LocationCrop from "@/components/LocationCrop";
 import * as Location from "expo-location";
 import { useLocationStore } from "@/store/locationStore";
+import { LanguageStore } from "@/store/languageStore";
 
 export default function MapPicker() {
   const { latitude: storeLat, longitude: storeLong, setLocation } = useLocationStore();

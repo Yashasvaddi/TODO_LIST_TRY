@@ -40,14 +40,14 @@ export default function Layout() {
 
   const drawerItems = [
     { name: "home/index", label: t("home"), icon: <FontAwesome name="home" size={24} className="mr-4" /> },
-    { name: "chatbot/index", label: t("chatBot"), icon: <Ionicons name="chatbubbles-outline" size={24} className="mr-4" /> },
+    { name: "chatbot/index", label: t("chatBot"), icon: <Ionicons name="chatbubbles" size={24} className="mr-4" /> },
     { name: "soil/index", label: t("soilHealth"), icon: <MaterialIcons name="grass" size={24} className="mr-4" /> },
     { name: "market_prices/index", label: t("marketStats"), icon: <FontAwesome name="line-chart" size={24} className="mr-4" /> },
-    { name: "forums", label: t("forums"), icon: <Ionicons name="people-outline" size={24} className="mr-4" /> },
+    { name: "forums", label: t("forums"), icon: <Ionicons name="people" size={24} className="mr-4" /> },
     { name: "profile/index", label: t("profile"), icon: <FontAwesome name="user" size={24} className="mr-4" /> },
-    { name: "settings/index", label: t("settings"), icon: <Ionicons name="settings-outline" size={24} className="mr-4" /> },
-    { name: "finanical_calc/index", label: t("Calculator"), icon: <Ionicons name="settings-outline" size={24} className="mr-4" /> },
-
+    { name: "settings/index", label: t("settings"), icon: <Ionicons name="settings" size={24} className="mr-4" /> },
+    { name: "finanical_calc/index", label: t("Calculator"), icon: <Ionicons name="calculator" size={24} className="mr-4" /> },
+    { name: "testing/index", label: t("Testing"), icon: <Ionicons name="speedometer" size={24} className="mr-4" /> },
   ];
 
 
@@ -90,7 +90,6 @@ const CustomDrawerContent = ({ navigation }: any) => {
     </View>
   );
 };
-
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
