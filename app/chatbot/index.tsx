@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -10,11 +9,14 @@ import {
   Keyboard,
   Animated,
   Platform,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../AuthContext'; // ✅ import AuthContext
 
 export default function ChatBotScreen() {
-  const [messages, setMessages] = useState<string[]>([]);
+  const { credentials  } = useAuth(); // ✅ get Aadhaar + phone
+  const [messages, setMessages] = useState<{ text: string; sender: 'user' | 'bot' }[]>([]);
   const [text, setText] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const keyboardHeight = useRef(new Animated.Value(0)).current;
@@ -24,8 +26,9 @@ export default function ChatBotScreen() {
     const showSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       (e) => {
+        const height = e.endCoordinates?.height || 250; // fallback for Expo Go
         Animated.timing(keyboardHeight, {
-          toValue: e.endCoordinates.height,
+          toValue: height + 25,
           duration: 250,
           useNativeDriver: false,
         }).start();
@@ -48,15 +51,51 @@ export default function ChatBotScreen() {
     };
   }, []);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!text.trim()) return;
-    setMessages((prev) => [...prev, text.trim()]);
+
+    const userMessage = { text: text.trim(), sender: 'user' as const };
+    setMessages((prev) => [...prev, userMessage]);
+    const question = text.trim();
     setText('');
     Keyboard.dismiss();
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+
+    try {
+      // ✅ include Phone_no and Aadhar_no in request
+      const res = await fetch("https://www.codersmitramandal.shop/sih/chatbot", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          Question: question,
+          Phone_no: credentials?.phone || "",
+          Aadhar_no: credentials?.aadhaar || ""
+        })
+      });
+
+      const data = await res.json();
+      const botMessage = { text: data?.answer || JSON.stringify(data), sender: 'bot' as const };
+      setMessages((prev) => [...prev, botMessage]);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    } catch (e) {
+      console.log(e);
+      const botMessage = { text: "Something went wrong.", sender: 'bot' as const };
+      setMessages((prev) => [...prev, botMessage]);
+    }
   };
 
   return (
+  <TouchableWithoutFeedback
+    onPress={() => {
+      Keyboard.dismiss(); // hide keyboard
+      Animated.timing(keyboardHeight, {
+        toValue: 0,      // reset input margin
+        duration: 250,
+        useNativeDriver: false,
+      }).start();
+    }}
+    accessible={false}
+  >
     <View style={styles.container}>
       {/* Top Bar */}
       <View style={styles.topBar}>
@@ -73,22 +112,28 @@ export default function ChatBotScreen() {
         data={messages}
         keyExtractor={(_, i) => i.toString()}
         renderItem={({ item }) => (
-          <View style={styles.messageBox}>
-            <Text style={styles.messageText}>{item}</Text>
+          <View
+            style={[
+              styles.messageBox,
+              item.sender === 'user'
+                ? { alignSelf: 'flex-end', backgroundColor: '#eee' }
+                : { alignSelf: 'flex-start', backgroundColor: '#d1e7ff' },
+            ]}
+          >
+            <Text style={styles.messageText}>{item.text}</Text>
           </View>
         )}
-        //contentContainerStyle={{ padding: 10, flexGrow: 1 }}
         contentContainerStyle={{ padding: 10, flexGrow: 1, paddingBottom: 10 }}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
 
       {/* Input */}
-      <Animated.View style={[
-        styles.inputWrapper, 
-        { marginBottom: Animated.add(keyboardHeight, new Animated.Value(20)) }
-        //{ marginBottom: keyboardHeight }
-
-        ]}>
+      <Animated.View
+        style={[
+          styles.inputWrapper,
+          { marginBottom: Animated.add(keyboardHeight, new Animated.Value(20)) },
+        ]}
+      >
         <TextInput
           style={styles.input}
           placeholder="Type a message..."
@@ -108,7 +153,8 @@ export default function ChatBotScreen() {
         )}
       </Animated.View>
     </View>
-  );
+  </TouchableWithoutFeedback>
+);
 }
 
 const styles = StyleSheet.create({
@@ -129,17 +175,12 @@ const styles = StyleSheet.create({
 
   // Messages
   messageBox: {
-    marginBottom: 10,
+    marginBottom: 20,
     padding: 10,
-    backgroundColor: '#eee',
     borderRadius: 8,
-    alignSelf: 'flex-end',
     maxWidth: '80%',
   },
-  messageText: { 
-    fontSize: 16,
-    marginLeft: 1
-  },
+  messageText: { fontSize: 16, marginLeft: 1 },
 
   // Input
   inputWrapper: {

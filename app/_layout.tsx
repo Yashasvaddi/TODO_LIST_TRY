@@ -9,14 +9,14 @@ import { useTranslation } from "react-i18next";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { usePathname } from "expo-router";
 import useUserLocation from "@/hooks/useUserLocation";
-// import ShowVideo from '@/components/ShowVideo';
+import { AuthProvider, useAuth } from "../AuthContext"; // <-- project-root/AuthContext.tsx
+import LoginScreen from "./login"; // app/login.tsx
 
-
-export default function Layout() {
+function LayoutInner() {
   const { t } = useTranslation();
   const pathname = usePathname();
-
   const { loading } = useUserLocation();
+  const { isAuthenticated } = useAuth(); // from AuthContext
 
   if (loading) {
     return (
@@ -26,71 +26,62 @@ export default function Layout() {
     );
   }
 
-  
-
-  const videoSources: Record<string, any> = {
-  //   "/home": require("../assets/videos/home.gif"),
-    "/chatbot": require("../assets/videos/chatbot.mp4"),
-  //   // "/soil/index": require("../assets/videos/soil.mp4"),
-    "/market_prices": require("../assets/videos/market_prices.mp4"),
-  //   // "/forums/index": require("../assets/videos/forums.mp4"),
-  //   // "/profile/index": require("../assets/videos/profile.mp4"),
-    "/settings": require("../assets/videos/settings.mp4"),
-  };
+  // show login first if not authenticated
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
 
   const drawerItems = [
-    { name: "home/index", label: t("home"), icon: <FontAwesome name="home" size={24} className="mr-4" /> },
-    { name: "chatbot/index", label: t("chatBot"), icon: <Ionicons name="chatbubbles-outline" size={24} className="mr-4" /> },
-    { name: "soil/index", label: t("soilHealth"), icon: <MaterialIcons name="grass" size={24} className="mr-4" /> },
-    { name: "market_prices/index", label: t("marketStats"), icon: <FontAwesome name="line-chart" size={24} className="mr-4" /> },
-    { name: "forums", label: t("forums"), icon: <Ionicons name="people-outline" size={24} className="mr-4" /> },
-    { name: "profile/index", label: t("profile"), icon: <FontAwesome name="user" size={24} className="mr-4" /> },
-    { name: "settings/index", label: t("settings"), icon: <Ionicons name="settings-outline" size={24} className="mr-4" /> },
-    { name: "finanical_calc/index", label: t("Calculator"), icon: <Ionicons name="settings-outline" size={24} className="mr-4" /> },
-
+    { name: "home/index", label: t("home"), icon: <FontAwesome name="home" size={22} /> },
+    { name: "chatbot/index", label: t("chatBot"), icon: <Ionicons name="chatbubbles-outline" size={22} /> },
+    { name: "soil/index", label: t("soilHealth"), icon: <MaterialIcons name="grass" size={22} /> },
+    { name: "market_prices/index", label: t("marketStats"), icon: <FontAwesome name="line-chart" size={22} /> },
+    { name: "finanical_calc/index", label: t("Calculator"), icon: <Ionicons name="settings-outline" size={22} /> },
+    { name: "forums", label: t("forums"), icon: <Ionicons name="people-outline" size={22} /> },
+    { name: "profile/index", label: t("profile"), icon: <FontAwesome name="user" size={22} /> },
+    { name: "settings/index", label: t("settings"), icon: <Ionicons name="settings-outline" size={22} /> },
   ];
 
+  const CustomDrawerContent = ({ navigation }: any) => {
+    const currentPage = pathname.replace("/", "");
+    return (
+      <View style={{ flex: 1, backgroundColor: "#fff" }}>
+        <View style={{ backgroundColor: "#065f46", padding: 20, alignItems: "center" }}>
+          <Text style={{ marginTop: 10, fontWeight: "700", color: "#fff", fontSize: 24 }}>FARM APP</Text>
+        </View>
 
-const CustomDrawerContent = ({ navigation }: any) => {
-  const currentPage = pathname.replace("/", ""); // remove leading "/"
-
-  return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      {/* Header */}
-      <View style={{ backgroundColor: "#065f46", padding: 20, alignItems: "center" }}>
-        <Text className="mt-10 font-bold text-white text-3xl">FARM APP</Text>
-      </View>
-
-      {/* Drawer Items */}
-      <View style={{ marginTop: 20 }}>
-        {drawerItems.map((item) => {
-          // normalize item name (e.g. "chatbot/index" → "chatbot")
-          const itemKey = item.name.split("/")[0];
-          const isActive = currentPage === itemKey;
-
-          return (
-            <TouchableOpacity
-              key={item.name}
-              onPress={() => navigation.navigate(item.name)}
-              className={`py-6 mx-14 flex justify-center items-center rounded-lg  border-b-2 ${
-                isActive ? "bg-green-700 border-green-900" : "border-gray-400"
-              }`}
-            >
-              <Text
-                className={`text-2xl font-semibold ${
-                  isActive ? "text-white" : "text-black"
-                }`}
+        <View style={{ marginTop: 20 }}>
+          {drawerItems.map((item) => {
+            const itemKey = item.name.split("/")[0];
+            const isActive = currentPage === itemKey;
+            return (
+              <TouchableOpacity
+                key={item.name}
+                onPress={() => navigation.navigate(item.name)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingVertical: 14,
+                  paddingHorizontal: 18,
+                  marginHorizontal: 14,
+                  borderBottomWidth: 1,
+                  borderColor: isActive ? "#134e4a" : "#e5e7eb",
+                  borderRadius: 8,
+                  backgroundColor: isActive ? "#166534" : "transparent",
+                  marginBottom: 6,
+                }}
               >
-                {item.icon} <Text className="text-center">{item.label}</Text>
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+                <View style={{ marginRight: 12 }}>{item.icon}</View>
+                <Text style={{ fontSize: 18, fontWeight: "600", color: isActive ? "#fff" : "#000" }}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
-    </View>
-  );
-};
-
+    );
+  };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -100,16 +91,23 @@ const CustomDrawerContent = ({ navigation }: any) => {
             key={item.name}
             name={item.name}
             options={{
-              drawerLabel: item.label, title: item.label,
+              drawerLabel: item.label,
+              title: item.label,
               headerStyle: { backgroundColor: "#065f46" },
               headerTintColor: "#fff",
-              // headerRight: () => (
-              //   <ShowVideo source={videoSources[pathname]} />
-              // ),
             }}
           />
         ))}
       </Drawer>
     </GestureHandlerRootView>
+  );
+}
+
+// only one default export — wraps LayoutInner inside AuthProvider
+export default function Layout() {
+  return (
+    <AuthProvider>
+      <LayoutInner />
+    </AuthProvider>
   );
 }

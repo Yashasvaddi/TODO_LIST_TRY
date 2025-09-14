@@ -1,31 +1,54 @@
 // screens/Forum/ForumGroups.js
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 
 export default function ForumGroups({ navigation }: {navigation:any}) {
+  const groups = [
+    { name: "Group 1", desc: "General farming discussions", route: "Group1" },
+    { name: "Group 2", desc: "Crop-specific queries", route: "Group2" },
+    { name: "Group 3", desc: "Techniques & best practices", route: "Group3" },
+  ];
+
   return (
-    <View className="flex-1 bg-white items-center justify-center px-6">
-
-      <TouchableOpacity
-        className="w-full bg-green-700 py-3 rounded-lg mb-3 items-center"
-        onPress={() => navigation.navigate("Group1")}
-      >
-        <Text className="text-white text-lg">Group 1</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        className="w-full bg-green-700 py-3 rounded-lg mb-3 items-center"
-        onPress={() => navigation.navigate("Group2")}
-      >
-        <Text className="text-white text-lg">Group 2</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        className="w-full bg-green-700 py-3 rounded-lg items-center"
-        onPress={() => navigation.navigate("Group3")}
-      >
-        <Text className="text-white text-lg">Group 3</Text>
-      </TouchableOpacity>
-    </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      {groups.map((g, i) => (
+        <TouchableOpacity
+          key={i}
+          style={styles.card}
+          onPress={() => navigation.navigate(g.route)}
+        >
+          <Text style={styles.title}>{g.name}</Text>
+          <Text style={styles.desc}>{g.desc}</Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    paddingTop: 10,
+  },
+  card: {
+    backgroundColor: "#1B5E20", // deep green
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 4, // Android shadow
+    shadowColor: "#000", // iOS shadow
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+  },
+  title: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  desc: {
+    color: "#f1f1f1",
+    fontSize: 14,
+  },
+});

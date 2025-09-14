@@ -14,8 +14,10 @@ export default function ForumStack() {
     <Stack.Navigator
       initialRouteName="ForumGroups"
       screenOptions={{ headerShown: false }}
+      
     >
       <Stack.Screen name="ForumGroups" component={ForumGroups} />
+      
       <Stack.Screen name="Group1" component={Group1} />
       <Stack.Screen name="Group2" component={Group2} />
       <Stack.Screen name="Group3" component={Group3} />

@@ -77,7 +77,7 @@ export default function Group1({ navigation }: {navigation:any}) {
         />
 
         {/* Input Box */}
-        <View className="flex-row items-center border-t border-gray-300 px-3 py-2 bg-white">
+        <View className="flex-row items-center border-t border-gray-300 px-3 py-2 bg-white mb-10">
           <TextInput
             placeholder="Type your message..."
             className="flex-1 px-3 py-2 bg-gray-100 rounded-full"
