@@ -44,6 +44,29 @@ const resources = {
         "यह ऐप किसानों को बाजार की कीमतें, मिट्टी की जानकारी और अधिक में मदद करता है।",
     },
   },
+
+  // marathi
+  ma: { // ✅ Marathi is now a top-level language
+    translation: {
+      home: "मुख्यपृष्ठ",
+      chatBot: "चॅटबॉट",
+      soilHealth: "माती आरोग्य",
+      marketStats: "बाजार आकडेवारी",
+      forums: "फोरम",
+      profile: "प्रोफाइल",
+      settings: "सेटिंग्ज",
+      language: "भाषा",
+      english: "इंग्रजी",
+      hindi: "हिंदी",
+      Marathi: "मराठी", // ✅ add this key
+      darkMode: "डार्क मोड",
+      notifications: "सूचना",
+      about: "बद्दल",
+      version: "आवृत्ती",
+      description:
+        "हा अॅप शेतकऱ्यांना बाजारभाव, माती माहिती आणि बरेच काही मिळविण्यास मदत करतो.",
+    },
+  },
 };
 
 i18n.use(initReactI18next).init({

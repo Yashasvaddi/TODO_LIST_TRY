@@ -3,10 +3,14 @@ import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import MarketForm from "../../components/MarketForm";
 import MarketList from "../../components/MarketList";
 import { Ionicons } from "@expo/vector-icons";
+import { useLocationStore } from "@/store/locationStore";
 
 export default function MarketPrices() {
-  const [selectedState, setSelectedState] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState("");
+
+  const {state, district} = useLocationStore()
+
+  const [selectedState, setSelectedState] = useState(state);
+  const [selectedDistrict, setSelectedDistrict] = useState(district);
   const [crop, setCrop] = useState("");
   const [items, setItems] = useState<any>({});
   const [loading, setLoading] = useState(false);

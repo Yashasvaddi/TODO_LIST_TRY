@@ -2,16 +2,11 @@ import { View, Text } from "react-native";
 import React, { useEffect, useState } from "react";
 import * as Progress from "react-native-progress";
 import Markdown from 'react-native-markdown-display';
+import { LanguageStore } from "@/store/languageStore";
 
 interface locProps {
-  coords: {
-    lat: number;
-    lon: number;
-  };
+  coords: { lat: number; lon: number };
   details: any;
-  setCoords: React.Dispatch<
-    React.SetStateAction<{ lat: number; lon: number }>
-  >;
 }
 
 export default function LocationCrop({ coords, details }: locProps) {
@@ -19,41 +14,42 @@ export default function LocationCrop({ coords, details }: locProps) {
   const [response, setResponse] = useState("Suggestions will appear here")
   const [load, setLoad] = useState(false)
 
-  // 🌈 Helper to color confidence bars
-  const getBarColor = (confidence: number) => {
-    if (confidence >= 0.6) return "#22c55e"; // green-500
-    if (confidence >= 0.3) return "#eab308"; // yellow-500
-    return "#ef4444"; // red-500
-  };
+  const { language } = LanguageStore()
 
+  const getBarColor = (confidence: number) => {
+    if (confidence >= 0.6) return "#22c55e";
+    if (confidence >= 0.3) return "#eab308";
+    return "#ef4444";
+  };
 
   useEffect(() => {
     if (!details) return;
 
-    let prompt = JSON.stringify(details)
+    const prompt = `Language: ${language}. You are an expert agronomist. Using the following farm info, provide concise, actionable crop suggestions for a farmer. 
+- Skip greetings.
+- Highlight key conditions in bold.
+- Keep suggestions short and easy to understand.
+Farm info: ${JSON.stringify(details)}`;
 
     async function geminiRes() {
       setLoad(true);
       try {
-        const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-goog-api-key": `${process.env.EXPO_PUBLIC_GEMINI_KEY}`
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [{ text: `${prompt}, this is the given information, give suggestions in easy language for a farmer that is short and tells them what to do in short in hindi language` }]
-              }
-            ]
-          })
-        });
+        const res = await fetch(
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-goog-api-key": `${process.env.EXPO_PUBLIC_GEMINI_KEY}`
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
+          }
+        );
+
         const data = await res.json();
-        console.log(data);
-
         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
-
         setResponse(text);
       } catch (err) {
         console.log("Error calling GenAI:", err);
@@ -63,29 +59,23 @@ export default function LocationCrop({ coords, details }: locProps) {
       }
     }
 
-    geminiRes(); // ✅ Call the function
+    geminiRes();
   }, [details]);
 
   return (
     <View className="p-4 m-4 rounded-2xl bg-white shadow-md border border-gray-200">
-      {/* 📍 Location */}
+      
+      {/* Location */}
       <Text className="text-xl font-bold text-gray-800 mb-3">📍 Location</Text>
       <View className="mb-4">
-        <Text className="text-gray-600">
-          Lat: {coords?.lat !== undefined ? coords.lat.toFixed(2) : "--"}
-        </Text>
-        <Text className="text-gray-600">
-          Lon: {coords?.lon !== undefined ? coords.lon.toFixed(2) : "--"}
-        </Text>
+        <Text className="text-gray-600">Lat: {coords?.lat?.toFixed(2) ?? "--"}</Text>
+        <Text className="text-gray-600">Lon: {coords?.lon?.toFixed(2) ?? "--"}</Text>
         <Text className="text-gray-600">District: {details?.locationInfo?.district ?? "--"}</Text>
         <Text className="text-gray-600">State: {details?.locationInfo?.state ?? "--"}</Text>
       </View>
 
-
-      {/* 🌱 Soil */}
-      <Text className="text-xl font-bold text-gray-800 mb-3">
-        🌱 Soil Characteristics
-      </Text>
+      {/* Soil */}
+      <Text className="text-xl font-bold text-gray-800 mb-3">🌱 Soil Characteristics</Text>
       <View className="flex-row flex-wrap gap-2">
         <Text className="px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
           Nitrogen: {details?.soil_characteristics?.N_level ?? "--"}
@@ -101,33 +91,23 @@ export default function LocationCrop({ coords, details }: locProps) {
         </Text>
       </View>
 
-      {/* 🌾 Crops */}
-      <Text className="text-xl font-bold text-gray-800 mt-6 mb-3">
-        🌾 Crop Recommendations
-      </Text>
-
+      {/* Crops */}
+      <Text className="text-xl font-bold text-gray-800 mt-6 mb-3">🌾 Crop Recommendations</Text>
       {details?.crop_recommendations?.length > 0 ? (
         details.crop_recommendations.map((item: any, ind: number) => {
-          const confidence = parseFloat(item.confidence != null ? item.confidence.toFixed(2) : "0");
+          const confidence = parseFloat(item.confidence?.toFixed(2) ?? "0");
           return (
-            <View
-              key={ind}
-              className="mb-4 p-4 rounded-xl bg-gray-50 border border-gray-200 shadow-sm"
-            >
+            <View key={ind} className="mb-4 p-4 rounded-xl bg-gray-50 border border-gray-200 shadow-sm">
               <View className="flex-row justify-between mb-2">
-                <Text className="text-lg font-semibold text-gray-800">
-                  {item.crop}
-                </Text>
-                <Text className="text-gray-600 font-medium">
-                  {Math.round(confidence * 100)}%
-                </Text>
+                <Text className="text-lg font-semibold text-gray-800">{item.crop}</Text>
+                <Text className="text-gray-600 font-medium">{Math.round(confidence * 100)}%</Text>
               </View>
               <Progress.Bar
                 progress={confidence}
                 width={null}
                 height={12}
                 color={getBarColor(confidence)}
-                unfilledColor="#e5e7eb" // gray-200
+                unfilledColor="#e5e7eb"
                 borderRadius={8}
                 borderWidth={0}
               />
@@ -135,16 +115,23 @@ export default function LocationCrop({ coords, details }: locProps) {
           );
         })
       ) : (
-        <Text className="text-gray-400 italic">
-          No crop recommendations yet...
-        </Text>
+        <Text className="text-gray-400 italic">No crop recommendations yet...</Text>
       )}
 
-      <View className="text-xl font-bold text-gray-800 mt-6 mb-3">
+      {/* AI Suggestions */}
+      <Text className="text-xl font-bold text-gray-800 mt-6 mb-3">💡 Suggestions</Text>
+      <View className="p-4 bg-green-50 rounded-xl border border-green-200 shadow-sm">
         {load ? (
           <Text className="text-gray-500 italic">Generating suggestions...</Text>
         ) : (
-          <Markdown>{response}</Markdown>
+          <Markdown
+            style={{
+              body: { color: "#065f46", fontSize: 16, lineHeight: 22 },
+              strong: { color: "#b91c1c" }
+            }}
+          >
+            {response}
+          </Markdown>
         )}
       </View>
     </View>

@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, FlatList, Modal } from "react-native";
 import statesData from "../app/market_prices/data/states.json";
-import { useLocationStore } from "../store/locationStore";
-import useUserLocation from "@/hooks/useUserLocation";
 
 interface MarketFormProps {
   crop: string;
@@ -10,6 +8,10 @@ interface MarketFormProps {
   setItems: (data: any) => void;
   loading: boolean;
   setLoading: (loading: boolean) => void;
+  selectedState: string;
+  setSelectedState: (val: string) => void;
+  selectedDistrict: string;
+  setSelectedDistrict: (val: string) => void;
 }
 
 export default function MarketForm({
@@ -18,29 +20,28 @@ export default function MarketForm({
   setItems,
   loading,
   setLoading,
+  selectedState,
+  setSelectedState,
+  selectedDistrict,
+  setSelectedDistrict,
 }: MarketFormProps) {
-  const { state, district, setState, setDistrict } = useLocationStore();
-  const { loading: locationLoading } = useUserLocation();
-
   const [stateDropdownVisible, setStateDropdownVisible] = useState(false);
   const [districtDropdownVisible, setDistrictDropdownVisible] = useState(false);
 
   const districts = useMemo(() => {
-    const found = statesData.states.find((s) => s.state === state);
+    const found = statesData.states.find((s) => s.state === selectedState);
     return found ? found.districts : [];
-  }, [state]);
+  }, [selectedState]);
 
   const handleSubmit = async () => {
-    if (!state || !district || !crop) {
+    if (!selectedState || !selectedDistrict || !crop) {
       Alert.alert("Error", "Please fill all fields before submitting");
       return;
     }
 
     setLoading(true);
     try {
-      console.log(state, district);
-      
-      const apiBody = { state, district, commodity: crop };
+      const apiBody = { state: selectedState, district: selectedDistrict, commodity: crop };
       const response = await fetch("https://www.codersmitramandal.shop/sih/marketprice/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,22 +58,43 @@ export default function MarketForm({
     }
   };
 
-  const renderDropdown = (visible: boolean, setVisible: any, options: string[], onSelect: (val: string) => void) => (
+  const renderDropdown = (
+    visible: boolean,
+    setVisible: any,
+    options: string[],
+    onSelect?: (val: string) => void
+  ) => (
     <Modal visible={visible} transparent animationType="fade">
       <TouchableOpacity
-        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)", justifyContent: "center", alignItems: "center" }}
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.3)",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
         activeOpacity={1}
         onPress={() => setVisible(false)}
       >
-        <View style={{ width: 260, backgroundColor: "#fff", borderRadius: 12, maxHeight: 320 }}>
+        <View
+          style={{
+            width: 260,
+            backgroundColor: "#fff",
+            borderRadius: 12,
+            maxHeight: 320,
+          }}
+        >
           <FlatList
             data={options}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
-                style={{ padding: 14, borderBottomColor: "#eee", borderBottomWidth: 1 }}
+                style={{
+                  padding: 14,
+                  borderBottomColor: "#eee",
+                  borderBottomWidth: 1,
+                }}
                 onPress={() => {
-                  onSelect(item);
+                  if (onSelect) onSelect(item);
                   setVisible(false);
                 }}
               >
@@ -89,15 +111,30 @@ export default function MarketForm({
     <View style={{ marginBottom: 20 }}>
       {/* State Picker */}
       <View style={{ marginBottom: 16 }}>
-        {locationLoading && <Text style={{ color: "#777" }}>Detecting location…</Text>}
         <Text style={{ fontWeight: "600", fontSize: 16, marginBottom: 6 }}>State</Text>
         <TouchableOpacity
           onPress={() => setStateDropdownVisible(true)}
-          style={{ padding: 14, backgroundColor: "#f9f9f9", borderColor: "#08CB00", borderWidth: 1, borderRadius: 12 }}
+          style={{
+            padding: 14,
+            backgroundColor: "#f9f9f9",
+            borderColor: "#08CB00",
+            borderWidth: 1,
+            borderRadius: 12,
+          }}
         >
-          <Text style={{ fontSize: 15, color: state ? "#000" : "#aaa" }}>{state || "Select a state"}</Text>
+          <Text style={{ fontSize: 15, color: selectedState ? "#000" : "#aaa" }}>
+            {selectedState || "Select a state"}
+          </Text>
         </TouchableOpacity>
-        {renderDropdown(stateDropdownVisible, setStateDropdownVisible, statesData.states.map(s => s.state), setState)}
+        {renderDropdown(
+          stateDropdownVisible,
+          setStateDropdownVisible,
+          statesData.states.map((s) => s.state),
+          (val) => {
+            setSelectedState(val);
+            setSelectedDistrict(""); // reset district when state changes
+          }
+        )}
       </View>
 
       {/* District Picker */}
@@ -105,12 +142,25 @@ export default function MarketForm({
         <Text style={{ fontWeight: "600", fontSize: 16, marginBottom: 6 }}>District</Text>
         <TouchableOpacity
           onPress={() => setDistrictDropdownVisible(true)}
-          style={{ padding: 14, backgroundColor: "#f9f9f9", borderColor: "#08CB00", borderWidth: 1, borderRadius: 12 }}
-          disabled={!state}
+          style={{
+            padding: 14,
+            backgroundColor: "#f9f9f9",
+            borderColor: "#08CB00",
+            borderWidth: 1,
+            borderRadius: 12,
+          }}
+          disabled={!selectedState}
         >
-          <Text style={{ fontSize: 15, color: district ? "#000" : "#aaa" }}>{district || "Select a district"}</Text>
+          <Text style={{ fontSize: 15, color: selectedDistrict ? "#000" : "#aaa" }}>
+            {selectedDistrict || "Select a district"}
+          </Text>
         </TouchableOpacity>
-        {renderDropdown(districtDropdownVisible, setDistrictDropdownVisible, districts, setDistrict)}
+        {renderDropdown(
+          districtDropdownVisible,
+          setDistrictDropdownVisible,
+          districts,
+          (val) => setSelectedDistrict(val)
+        )}
       </View>
 
       {/* Crop Input */}
@@ -132,15 +182,19 @@ export default function MarketForm({
       {/* Submit */}
       <TouchableOpacity
         onPress={handleSubmit}
-        disabled={loading || !state || !district || !crop}
+        disabled={loading || !selectedState || !selectedDistrict || !crop}
         style={{
           padding: 14,
           borderRadius: 12,
-          backgroundColor: loading || !state || !district || !crop ? "#ccc" : "#08CB00",
+          backgroundColor: loading || !selectedState || !selectedDistrict || !crop ? "#ccc" : "#08CB00",
           alignItems: "center",
         }}
       >
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>Fetch Prices</Text>}
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>Fetch Prices</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
