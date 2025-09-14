@@ -35,7 +35,7 @@ export default function Layout() {
           }}
         />
         <Drawer.Screen
-          name="forums/index" // This is the name of the page and must match the url from root
+          name="forums" // This is the name of the page and must match the url from root
           options={{
             drawerLabel: 'Forums',
             title: 'Forums',
@@ -53,6 +53,13 @@ export default function Layout() {
           options={{
             drawerLabel: 'Settings',
             title: 'Settings',
+          }}
+        />
+        <Drawer.Screen
+          name="finanical_calc/index" // This is the name of the page and must match the url from root
+          options={{
+            drawerLabel: 'Financial Calculator',
+            title: 'Financial Calculator',
           }}
         />
       </Drawer>
