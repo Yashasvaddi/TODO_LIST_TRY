@@ -10,16 +10,22 @@ export default function FinancialCalculatorScreen() {
   ];
 
   const [selectedCrop, setSelectedCrop] = useState('Rice');
-  const [farmArea, setFarmArea] = useState(1);
-  const [expectedYield, setExpectedYield] = useState(25);
-  const [marketPrice, setMarketPrice] = useState(2000);
+  // 👇 keep as string so inputs can be empty
+  const [farmArea, setFarmArea] = useState("");
+  const [expectedYield, setExpectedYield] = useState("");
+  const [marketPrice, setMarketPrice] = useState("");
 
   const selectedCropData = cropCostData.find(crop => crop.crop === selectedCrop) || cropCostData[0];
 
-  const totalCost = selectedCropData.total * farmArea;
-  const expectedRevenue = expectedYield * marketPrice * farmArea;
+  // 👇 safely convert to numbers for calculations
+  const area = parseFloat(farmArea) || 0;
+  const yieldValue = parseFloat(expectedYield) || 0;
+  const price = parseFloat(marketPrice) || 0;
+
+  const totalCost = selectedCropData.total * area;
+  const expectedRevenue = yieldValue * price * area;
   const expectedProfit = expectedRevenue - totalCost;
-  const profitMargin = totalCost > 0 ? ((expectedProfit / expectedRevenue) * 100).toFixed(1) : 0;
+  const profitMargin = expectedRevenue > 0 ? ((expectedProfit / expectedRevenue) * 100).toFixed(1) : 0;
 
   return (
     <ScrollView style={styles.container}>
@@ -51,24 +57,24 @@ export default function FinancialCalculatorScreen() {
         <TextInput
           style={styles.input}
           keyboardType="numeric"
-          value={farmArea.toString()}
-          onChangeText={(v) => setFarmArea(parseFloat(v) || 1)}
+          value={farmArea}
+          onChangeText={setFarmArea}
         />
 
         <Text style={styles.label}>Expected Yield (Quintal/Hectare)</Text>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
-          value={expectedYield.toString()}
-          onChangeText={(v) => setExpectedYield(parseFloat(v) || 25)}
+          value={expectedYield}
+          onChangeText={setExpectedYield}
         />
 
         <Text style={styles.label}>Market Price (₹/Quintal)</Text>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
-          value={marketPrice.toString()}
-          onChangeText={(v) => setMarketPrice(parseFloat(v) || 2000)}
+          value={marketPrice}
+          onChangeText={setMarketPrice}
         />
       </View>
 
