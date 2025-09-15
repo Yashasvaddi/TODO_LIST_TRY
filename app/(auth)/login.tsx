@@ -12,7 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useAuthStore } from '@/store/authStore';
-import { LanguageStore } from '@/store/languageStore';
+import { useLanguageStore } from '@/store/languageStore';
 
 function formatAadhaarDisplay(digits = "") {
   return digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
@@ -20,7 +20,7 @@ function formatAadhaarDisplay(digits = "") {
 
 export default function LoginScreen() {
   const { credentials, updateCredentials, login } = useAuthStore();
-  const { language, setLanguage } = LanguageStore();
+  const { language, setLanguage } = useLanguageStore();
 
   console.log("Login screen rendered", credentials, language);
 
