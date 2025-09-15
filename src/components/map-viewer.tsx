@@ -1,283 +1,196 @@
+// FILE: src/components/map-viewer.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { MapPin, Layers, ZoomIn, ZoomOut } from 'lucide-react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-// Mock GeoJSON data for Indian farms
+// Fix for default marker icon paths with bundlers (Vite/Webpack)
+// This ensures marker images are correctly resolved at runtime
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl
+});
+
+// Optional: UI imports (adjust to your UI system)
+import { MapPin } from 'lucide-react';
+
+// --- Sample mockFarmData: replace with your real mock data or import it ---
 const mockFarmData = {
-  type: "FeatureCollection",
-  features: [
+  "type": "FeatureCollection",
+  "features": [
     {
-      type: "Feature",
-      properties: {
-        id: "farm_001",
-        name: "राम किशन का खेत",
-        farmer: "राम किशन शर्मा",
-        crop: "धान",
-        area: "2.5 एकड़",
-        ndvi: 0.82,
-        status: "स्वस्थ",
-        state: "उत्तर प्रदेश",
-        district: "कानपुर"
+      "type": "Feature",
+      "properties": {
+        "id": "F123",
+        "name": "Shree Farm",
+        "farmer": "Vinit",
+        "crop": "Rice",
+        "ndvi": 0.32,
+        "area": "2.3 ha",
+        "status": "water stress"
       },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [80.123, 26.456],
-          [80.126, 26.456],
-          [80.126, 26.459],
-          [80.123, 26.459],
-          [80.123, 26.456]
-        ]]
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [73.786, 20.011],
+            [73.788, 20.011],
+            [73.788, 20.013],
+            [73.786, 20.013],
+            [73.786, 20.011]
+          ]
+        ]
       }
     },
     {
-      type: "Feature",
-      properties: {
-        id: "farm_002",
-        name: "सुनीता देवी का खेत",
-        farmer: "सुनीता देवी",
-        crop: "गेहूं",
-        area: "1.8 एकड़",
-        ndvi: 0.75,
-        status: "मध्यम",
-        state: "बिहार",
-        district: "पटना"
+      "type": "Feature",
+      "properties": {
+        "id": "F456",
+        "name": "Mahal Farm",
+        "farmer": "Swayam",
+        "crop": "Wheat",
+        "ndvi": 0.68,
+        "area": "1.1 ha",
+        "status": "healthy"
       },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [85.118, 25.461],
-          [85.121, 25.461],
-          [85.121, 25.464],
-          [85.118, 25.464],
-          [85.118, 25.461]
-        ]]
-      }
-    },
-    {
-      type: "Feature",
-      properties: {
-        id: "farm_003",
-        name: "अमित पटेल का खेत",
-        farmer: "अमित कुमार पटेल",
-        crop: "कपास",
-        area: "3.2 एकड़",
-        ndvi: 0.68,
-        status: "सुधार आवश्यक",
-        state: "गुजरात",
-        district: "अहमदाबाद"
-      },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [72.112, 23.466],
-          [72.115, 23.466],
-          [72.115, 23.470],
-          [72.112, 23.470],
-          [72.112, 23.466]
-        ]]
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [73.79, 20.015],
+            [73.792, 20.015],
+            [73.792, 20.017],
+            [73.79, 20.017],
+            [73.79, 20.015]
+          ]
+        ]
       }
     }
   ]
 };
 
+// Helper: color by NDVI (simple ramp)
+const getColorByNDVI = (ndvi: number) => {
+  if (ndvi >= 0.75) return '#1a9850';
+  if (ndvi >= 0.6) return '#66bd63';
+  if (ndvi >= 0.45) return '#fee08b';
+  if (ndvi >= 0.3) return '#f46d43';
+  return '#d73027';
+};
+
 export function MapViewer() {
-  const mapRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const leafletMapRef = useRef<L.Map | null>(null);
+  const geoJsonLayerRef = useRef<L.GeoJSON | null>(null);
+
   const [selectedFarm, setSelectedFarm] = useState<any>(null);
-  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
-    // Mock Leaflet initialization
-    // In real implementation, this would initialize the actual Leaflet map
-    /*
-    import L from 'leaflet';
-    
-    if (mapRef.current && !mapReady) {
-      const map = L.map(mapRef.current).setView([38.4575, -120.1205], 13);
-      
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(map);
-      
-      // Add GeoJSON layer
-      L.geoJSON(mockFarmData, {
-        style: (feature) => ({
-          fillColor: getColorByNDVI(feature.properties.ndvi),
-          weight: 2,
-          opacity: 1,
-          color: 'white',
-          fillOpacity: 0.7
-        }),
-        onEachFeature: (feature, layer) => {
-          layer.on('click', () => {
-            setSelectedFarm(feature.properties);
-          });
-        }
-      }).addTo(map);
-      
-      setMapReady(true);
-    }
-    */
-    
-    // Mock setup complete
-    setMapReady(true);
-  }, [mapReady]);
+    if (!mapRef.current) return;
+    if (leafletMapRef.current) return; // already initialized
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy': return 'bg-green-500';
-      case 'moderate': return 'bg-yellow-500';
-      case 'poor': return 'bg-red-500';
-      default: return 'bg-gray-500';
+    // 1. initialize map
+    const map = L.map(mapRef.current, {
+      center: [20.01, 73.79], // focus to your sample coords
+      zoom: 14,
+      zoomControl: true
+    });
+    leafletMapRef.current = map;
+
+    // 2. add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 3. add GeoJSON layer
+    const geoJsonLayer = L.geoJSON((mockFarmData as any), {
+      style: (feature: any) => ({
+        fillColor: getColorByNDVI(feature.properties.ndvi),
+        weight: 1,
+        opacity: 1,
+        color: '#ffffff',
+        fillOpacity: 0.7
+      }),
+      onEachFeature: (feature: any, layer: L.Layer) => {
+        const props = feature.properties;
+        const popupHtml = `
+          <div style="font-size:14px">
+            <strong>${props.name}</strong><br/>
+            Farmer: ${props.farmer}<br/>
+            Crop: ${props.crop}<br/>
+            NDVI: ${props.ndvi}<br/>
+            Area: ${props.area}
+          </div>
+        `;
+        (layer as L.Layer).bindPopup(popupHtml);
+
+        layer.on('click', () => {
+          setSelectedFarm(props);
+          (layer as any).openPopup();
+        });
+
+        layer.on('mouseover', function (ev: any) {
+          (ev.target as L.Path).setStyle({ weight: 2, color: '#333' });
+        });
+        layer.on('mouseout', function (ev: any) {
+          geoJsonLayer.resetStyle(ev.target);
+        });
+      }
+    }).addTo(map);
+
+    geoJsonLayerRef.current = geoJsonLayer;
+
+    // fit to data bounds if possible
+    try {
+      const bounds = geoJsonLayer.getBounds();
+      if (bounds && bounds.isValid()) {
+        map.fitBounds(bounds.pad(0.3));
+      }
+    } catch (err) {
+      console.warn('Could not fit bounds', err);
     }
-  };
+
+    // cleanup when unmounting
+    return () => {
+      geoJsonLayer.remove();
+      map.remove();
+      leafletMapRef.current = null;
+      geoJsonLayerRef.current = null;
+    };
+  }, []);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1>राष्ट्रीय कृषि मानचित्र</h1>
-        <p className="text-muted-foreground">
-          छोटे और सीमांत किसानों के खेतों का भू-स्थानिक विश्लेषण और NDVI डेटा
-        </p>
-      </div>
+    <div style={{ padding: 12 }}>
+      <h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <MapPin /> Map Explorer
+      </h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Map Container */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              राज्यवार किसान खेत मानचित्र
-            </CardTitle>
-            <CardDescription>
-              खेत के बहुभुज पर क्लिक करके विवरण देखें
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="relative">
-              <div 
-                ref={mapRef} 
-                className="w-full h-96 bg-muted rounded-md flex items-center justify-center border-2 border-dashed border-border"
-              >
-                <div className="text-center">
-                  <Layers className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">
-                    भारतीय कृषि मानचित्र (Leaflet Map)
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    उत्पादन में: इंटरैक्टिव मानचित्र किसान खेतों के साथ
-                  </p>
-                  <div className="mt-4 flex gap-2 justify-center">
-                    <Button variant="outline" size="sm">
-                      <ZoomIn className="h-4 w-4 mr-1" />
-                      Zoom In
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <ZoomOut className="h-4 w-4 mr-1" />
-                      Zoom Out
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Farm Details Sidebar */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>किसान खेत विवरण</CardTitle>
-              <CardDescription>
-                {selectedFarm ? 'चयनित खेत की जानकारी' : 'विवरण देखने के लिए खेत चुनें'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {selectedFarm ? (
-                <div className="space-y-3">
-                  <div>
-                    <h3 className="font-medium">{selectedFarm.name}</h3>
-                    <p className="text-sm text-muted-foreground">किसान: {selectedFarm.farmer}</p>
-                    <p className="text-sm text-muted-foreground">{selectedFarm.district}, {selectedFarm.state}</p>
-                    <p className="text-sm text-muted-foreground">क्षेत्रफल: {selectedFarm.area}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">फसल:</span>
-                    <Badge variant="outline">{selectedFarm.crop}</Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">NDVI:</span>
-                    <Badge variant="secondary">{selectedFarm.ndvi}</Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">स्थिति:</span>
-                    <div className="flex items-center gap-1">
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor(selectedFarm.status)}`} />
-                      <span className="text-sm">{selectedFarm.status}</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-sm">
-                  विस्तृत जानकारी देखने के लिए मानचित्र में खेत के बहुभुज पर क्लिक करें।
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Farm List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>सभी पंजीकृत किसान</CardTitle>
-              <CardDescription>राष्ट्रीय किसान डेटाबेस</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {mockFarmData.features.map((farm) => (
-                  <Button
-                    key={farm.properties.id}
-                    variant={selectedFarm?.id === farm.properties.id ? "secondary" : "ghost"}
-                    className="w-full justify-start text-left"
-                    onClick={() => setSelectedFarm(farm.properties)}
-                  >
-                    <div>
-                      <p className="font-medium">{farm.properties.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {farm.properties.farmer}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {farm.properties.crop} • {farm.properties.area} • NDVI: {farm.properties.ndvi}
-                      </p>
-                    </div>
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+      <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ flex: 1 }}>
+          {/* map container: must have height */}
+          <div ref={mapRef} style={{ width: '100%', height: '520px', borderRadius: 6, overflow: 'hidden' }} />
         </div>
-      </div>
 
-      {/* Integration Notice */}
-      <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-2">
-            <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-            <div>
-              <p className="font-medium text-blue-900 dark:text-blue-100">मानचित्र एकीकरण स्थिति</p>
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                यह एक मॉक implementation है। उत्पादन में यह उपयोग करेगा:
-                <br />• इंटरैक्टिव मैपिंग के लिए Leaflet.js
-                <br />• PostGIS डेटाबेस से रियल GeoJSON डेटा
-                <br />• सैटेलाइट APIs से लाइव NDVI डेटा
-                <br />• कस्टम polygon drawing और editing टूल्स
-                <br />• भारतीय कृषि रिसर्च डेटा इंटीग्रेशन
-              </p>
-            </div>
+        <aside style={{ width: 320 }}>
+          <div style={{ padding: 12, border: '1px solid #eee', borderRadius: 8 }}>
+            <h3>Selected Farm</h3>
+            {selectedFarm ? (
+              <div>
+                <p><strong>{selectedFarm.name}</strong></p>
+                <p>Farmer: {selectedFarm.farmer}</p>
+                <p>Crop: {selectedFarm.crop}</p>
+                <p>NDVI: {selectedFarm.ndvi}</p>
+                <p>Area: {selectedFarm.area}</p>
+              </div>
+            ) : (
+              <div><em>Click a polygon to see details</em></div>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </aside>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,15 @@
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+import App from './App'
+import './index.css'
 
-  import { createRoot } from "react-dom/client";
-  import App from "./App.tsx";
-  import "./index.css";
+// --- add Leaflet CSS import ---
+import 'leaflet/dist/leaflet.css'
 
-  createRoot(document.getElementById("root")!).render(<App />);
-  
+// rest of file...
+const root = createRoot(document.getElementById('root')!)
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+)
