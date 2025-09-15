@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Linking, Image, Modal, ActivityIndicator } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocationStore } from "@/store/locationStore";
-import { LanguageStore } from "@/store/languageStore";
+import { useLanguageStore } from "@/store/languageStore";
 
 export default function HomeScreen() {
   const [weather, setWeather] = useState<any>(null);
@@ -13,7 +13,7 @@ export default function HomeScreen() {
   const [loadingNews, setLoadingNews] = useState(true);
 
   const { latitude: initialLat, longitude: initialLong } = useLocationStore();
-  const { language } = LanguageStore();
+  const { language } = useLanguageStore();  
 
   useEffect(() => {
     async function fetchWeather() {
@@ -128,42 +128,42 @@ export default function HomeScreen() {
           </View>
 
           <Text className="text-2xl font-bold text-gray-900 mb-6">
-            {weather ? `${Math.round(weather.main.temp)}°C` : "Loading..."}
+            {weather ? `${Math.round(weather.main?.temp)}°C` : "Loading..."}
           </Text>
 
           <View className="flex-row justify-between mb-6">
             <View className="items-center">
               <MaterialCommunityIcons name="thermometer-lines" size={20} color="#4b5563" />
               <Text className="text-gray-600 text-xs mt-1">
-                {weather ? `${Math.round(weather.main.feels_like)}°C Feels` : "--"}
+                {weather ? `${Math.round(weather.main?.feels_like)}°C Feels` : "--"}
               </Text>
             </View>
             <View className="items-center">
               <MaterialCommunityIcons name="water-percent" size={20} color="#4b5563" />
               <Text className="text-gray-600 text-xs mt-1">
-                {weather ? `${weather.main.humidity}% Humidity` : "--"}
+                {weather ? `${weather?.main?.humidity}% Humidity` : "--"}
               </Text>
             </View>
             <View className="items-center">
               <MaterialCommunityIcons name="weather-windy" size={20} color="#4b5563" />
               <Text className="text-gray-600 text-xs mt-1">
-                {weather ? `${weather.wind.speed} m/s Wind` : "--"}
+                {weather ? `${weather?.wind?.speed} m/s Wind` : "--"}
               </Text>
             </View>
             <View className="items-center">
               <MaterialCommunityIcons name="weather-rainy" size={20} color="#4b5563" />
               <Text className="text-gray-600 text-xs mt-1">
-                {weather && weather.rain ? `${weather.rain["1h"]} mm Rain` : "0 mm Rain"}
+                {weather && weather.rain ? `${weather?.rain["1h"]} mm Rain` : "0 mm Rain"}
               </Text>
             </View>
           </View>
 
           <View className="flex-row justify-between mb-10">
             <Text className="text-gray-600 text-xs">
-              {weather ? new Date(weather.sys.sunrise * 1000).toLocaleTimeString() : "--"} Sunrise
+              {weather ? new Date(weather?.sys?.sunrise * 1000).toLocaleTimeString() : "--"} Sunrise
             </Text>
             <Text className="text-gray-600 text-xs">
-              {weather ? new Date(weather.sys.sunset * 1000).toLocaleTimeString() : "--"} Sunset
+              {weather ? new Date(weather?.sys?.sunset * 1000).toLocaleTimeString() : "--"} Sunset
             </Text>
           </View>
         </View>

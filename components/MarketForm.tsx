@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, FlatList, Modal } from "react-native";
-import statesData from "../app/market_prices/data/states.json";
+import statesData from "../app/(drawer)/market_prices/data/states.json";
 
 interface MarketFormProps {
   crop: string;

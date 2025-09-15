@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, ScrollView, Text } from "react-native";
-import WebMap from "../../components/WebMap";
+import WebMap from "../../../components/WebMap";
 import LocationCrop from "@/components/LocationCrop";
 import * as Location from "expo-location";
 import { useLocationStore } from "@/store/locationStore";
@@ -71,7 +71,7 @@ export default function MapPicker() {
         <WebMap coords={coords} setCoords={setCoords} />
       </View>
       <ScrollView style={{ flex: 0.4 }}>
-        {apiLoad ? <Text>Loading.......</Text> : <LocationCrop details={details} coords={coords} setCoords={setCoords} />}
+        {apiLoad ? <Text>Loading.......</Text> : <LocationCrop details={details} coords={coords} />}
       </ScrollView>
     </View>
   );

@@ -11,14 +11,18 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
-import { useAuth } from "../AuthContext"; // ../ because this file is inside app/
+import { useAuthStore } from '@/store/authStore';
+import { LanguageStore } from '@/store/languageStore';
 
 function formatAadhaarDisplay(digits = "") {
   return digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
 }
 
 export default function LoginScreen() {
-  const { credentials, updateCredentials, login } = useAuth();
+  const { credentials, updateCredentials, login } = useAuthStore();
+  const { language, setLanguage } = LanguageStore();
+
+  console.log("Login screen rendered", credentials, language);
 
   const onChangePhone = (raw: string) => {
     const digits = raw.replace(/\D/g, "").slice(0, 10);
@@ -32,10 +36,10 @@ export default function LoginScreen() {
 
   const isPhoneValid = /^[6-9]\d{9}$/.test(credentials.phone);
   const isAadhaarValid = credentials.aadhaar.length === 12;
-  const isLanguageValid = credentials.language !== "";
+  // const isLanguageValid = language !== "";
 
   const handleLogin = () => {
-    if (!isPhoneValid || !isAadhaarValid || !isLanguageValid) {
+    if (!isPhoneValid || !isAadhaarValid) {
       Alert.alert("Invalid", "Enter valid Phone, Aadhaar, and select a Language.");
       return;
     }
@@ -83,19 +87,19 @@ export default function LoginScreen() {
           maxLength={14}
         />
 
-        {/* Language Picker */}
-        <Text style={[styles.label, { marginTop: 16 }]}>Preferred Language</Text>
+        {/* Language Picker (from languageStore) */}
+        {/* <Text style={[styles.label, { marginTop: 16 }]}>Preferred Language</Text>
         <View style={styles.pickerWrapper}>
           <Picker
-            selectedValue={credentials.language}
-            onValueChange={(value) => updateCredentials({ language: value })}
+            selectedValue={language}
+            onValueChange={(value) => setLanguage(value)}
           >
-            <Picker.Item label="-- Select --" value="" />
-            <Picker.Item label="Hindi" value="Hindi" />
-            <Picker.Item label="English" value="English" />
-            <Picker.Item label="Punjabi" value="Punjabi" />
+            <Picker.Item label="-- Select --" value="en" />
+            <Picker.Item label="Hindi" value="hi" />
+            <Picker.Item label="English" value="en" />
+            <Picker.Item label="Punjabi" value="pa" />
           </Picker>
-        </View>
+        </View> */}
 
         <Text style={styles.hint}>
           This is a mock login. Data is stored locally in-memory (front-end) for demo only.
@@ -104,13 +108,14 @@ export default function LoginScreen() {
         <TouchableOpacity
           style={[
             styles.loginButton,
-            !(isPhoneValid && isAadhaarValid && isLanguageValid) && { opacity: 0.6 },
+            !(isPhoneValid && isAadhaarValid) && { opacity: 0.6 },
           ]}
-          disabled={!(isPhoneValid && isAadhaarValid && isLanguageValid)}
+          disabled={!(isPhoneValid && isAadhaarValid)} 
           onPress={handleLogin}
         >
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
+
       </View>
     </KeyboardAvoidingView>
   );
@@ -130,12 +135,7 @@ const styles = StyleSheet.create({
   },
   topBarTitle: { fontSize: 18, fontWeight: "bold" },
 
-  form: {
-    padding: 16,
-    flex: 1,
-    justifyContent: "center",
-  },
-
+  form: { padding: 16, flex: 1, justifyContent: "center" },
   label: { fontSize: 14, marginBottom: 8, fontWeight: "600" },
 
   phoneRow: { flexDirection: "row", alignItems: "center" },

@@ -2,6 +2,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import * as Localization from "expo-localization";
+import { useLanguageStore } from "./store/languageStore"; // Updated hook import
 
 const resources = {
   en: {
@@ -16,6 +17,7 @@ const resources = {
       language: "Language",
       english: "English",
       hindi: "Hindi",
+      marathi: "Marathi",
       darkMode: "Dark Mode",
       notifications: "Notifications",
       about: "About",
@@ -36,6 +38,7 @@ const resources = {
       language: "भाषा",
       english: "अंग्रेज़ी",
       hindi: "हिन्दी",
+      marathi: "मराठी",
       darkMode: "डार्क मोड",
       notifications: "सूचनाएं",
       about: "जानकारी",
@@ -44,9 +47,7 @@ const resources = {
         "यह ऐप किसानों को बाजार की कीमतें, मिट्टी की जानकारी और अधिक में मदद करता है।",
     },
   },
-
-  // marathi
-  ma: { // ✅ Marathi is now a top-level language
+  ma: {
     translation: {
       home: "मुख्यपृष्ठ",
       chatBot: "चॅटबॉट",
@@ -58,7 +59,7 @@ const resources = {
       language: "भाषा",
       english: "इंग्रजी",
       hindi: "हिंदी",
-      Marathi: "मराठी", // ✅ add this key
+      marathi: "मराठी",
       darkMode: "डार्क मोड",
       notifications: "सूचना",
       about: "बद्दल",
@@ -69,13 +70,25 @@ const resources = {
   },
 };
 
+// Map store language values to i18n codes
+function getLanguageCode(language: string): string {
+  if (language === "hindi") return "hi";
+  if (language === "marathi") return "ma";
+  return "en"; // default English
+}
+
+// Initialize i18n
 i18n.use(initReactI18next).init({
   resources,
-  lng: Localization.locale?.split("-")[0] || "en", // fallback to 'en'
+  lng: Localization.getLocales()?.[0]?.languageCode ?? "en", // detect device language
   fallbackLng: "en",
-  interpolation: {
-    escapeValue: false, // React already escapes
-  },
+  interpolation: { escapeValue: false },
+});
+
+// Subscribe to LanguageStore changes
+useLanguageStore.subscribe((state) => {
+  const code = getLanguageCode(state.language);
+  i18n.changeLanguage(code);
 });
 
 export default i18n;

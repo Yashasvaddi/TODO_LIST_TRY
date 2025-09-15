@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import * as Location from "expo-location";
-import statesData from "../app/market_prices/data/states.json";
+import statesData from "../app/(drawer)/market_prices/data/states.json";
 import { useLocationStore } from "../store/locationStore";
 
 export default function useUserLocation() {

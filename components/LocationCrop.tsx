@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 import React, { useEffect, useState } from "react";
 import * as Progress from "react-native-progress";
 import Markdown from 'react-native-markdown-display';
-import { LanguageStore } from "@/store/languageStore";
+import { useLanguageStore } from "@/store/languageStore";
 
 interface locProps {
   coords: { lat: number; lon: number };
@@ -14,7 +14,7 @@ export default function LocationCrop({ coords, details }: locProps) {
   const [response, setResponse] = useState("Suggestions will appear here")
   const [load, setLoad] = useState(false)
 
-  const { language } = LanguageStore()
+  const { language } = useLanguageStore()
 
   const getBarColor = (confidence: number) => {
     if (confidence >= 0.6) return "#22c55e";
@@ -25,7 +25,7 @@ export default function LocationCrop({ coords, details }: locProps) {
   useEffect(() => {
     if (!details) return;
 
-    const prompt = `Language: ${language}. You are an expert agronomist. Using the following farm info, provide concise, actionable crop suggestions for a farmer. 
+    const prompt = `USE Language: ${language}(code). You are an expert agronomist. Using the following farm info, provide concise, actionable crop suggestions for a farmer. 
 - Skip greetings.
 - Highlight key conditions in bold.
 - Keep suggestions short and easy to understand.

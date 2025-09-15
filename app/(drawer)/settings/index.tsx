@@ -2,21 +2,25 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Switch } from "react-native";
 import { useTranslation } from "react-i18next";
-import { LanguageStore } from "@/store/languageStore";
+import { useLanguageStore } from "@/store/languageStore";
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
 
-  const {language, setLanguage} = LanguageStore();
+  const language = useLanguageStore((state) => state.language);
+  const setLanguage = useLanguageStore((state) => state.setLanguage);
+
+  const LANG_MAP: Record<string, string> = {
+    en: "english",
+    hi: "hindi",
+    ma: "marathi",
+  };
 
   const changeLanguage = (lng: "en" | "hi" | "ma") => {
-    if(lng === "en") setLanguage("english")
-    if(lng === "hi") setLanguage("hindi")
-    if(lng === "ma") setLanguage("marathi")
-
-    i18n.changeLanguage(lng); // dynamically changes language
+    setLanguage(LANG_MAP[lng]);
+    i18n.changeLanguage(lng);
   };
 
   return (
@@ -26,32 +30,19 @@ export default function Settings() {
       {/* Language Section */}
       <Text className="text-lg font-semibold mb-2">{t("language")}</Text>
       <View className="flex-row mb-6">
-        <TouchableOpacity
-          onPress={() => changeLanguage("en")}
-          className={`px-4 py-2 mr-2 rounded border ${
-            i18n.language === "en" ? "bg-green-600 border-green-600" : "bg-white border-gray-300"
-          }`}
-        >
-          <Text className={i18n.language === "en" ? "text-white" : "text-black"}>{t("english")}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => changeLanguage("hi")}
-          className={`px-4 py-2 mr-2 rounded border ${
-            i18n.language === "hi" ? "bg-green-600 border-green-600" : "bg-white border-gray-300"
-          }`}
-        >
-          <Text className={i18n.language === "hi" ? "text-white" : "text-black"}>{t("hindi")}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => changeLanguage("ma")}
-          className={`px-4 py-2 mr-2 rounded border ${
-            i18n.language === "ma" ? "bg-green-600 border-green-600" : "bg-white border-gray-300"
-          }`}
-        >
-          <Text className={i18n.language === "ma" ? "text-white" : "text-black"}>{t("Marathi")}</Text>
-        </TouchableOpacity>
+        {(["en", "hi", "ma"] as const).map((lng) => (
+          <TouchableOpacity
+            key={lng}
+            onPress={() => changeLanguage(lng)}
+            className={`px-4 py-2 mr-2 rounded border ${
+              i18n.language === lng ? "bg-green-600 border-green-600" : "bg-white border-gray-300"
+            }`}
+          >
+            <Text className={i18n.language === lng ? "text-white" : "text-black"}>
+              {t(LANG_MAP[lng])}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* Dark Mode */}

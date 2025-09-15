@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import MarketForm from "../../components/MarketForm";
-import MarketList from "../../components/MarketList";
+import MarketForm from "../../../components/MarketForm";
+import MarketList from "../../../components/MarketList";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocationStore } from "@/store/locationStore";
 
