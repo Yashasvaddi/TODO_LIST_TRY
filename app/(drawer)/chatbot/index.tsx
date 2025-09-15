@@ -10,6 +10,8 @@ import {
   Platform,
   Modal,
   Pressable,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -20,68 +22,147 @@ export default function ChatBotScreen() {
   const credentials = useAuthStore((state) => state.credentials);
   const { state, district } = useLocationStore();
 
-  const [messages, setMessages] = useState<{ text: string; sender: "user" | "bot" }[]>([]);
-  const [text, setText] = useState("");
-  const flatListRef = useRef<FlatList>(null);
+  type Message = {
+    id: string;
+    text?: string;
+    imageUri?: string;
+    sender: "user" | "bot";
+  };
 
-  // Modal states
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [text, setText] = useState("");
+  const [base64Image, setBase64Image] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [imageType, setImageType] = useState<"pest" | "disease" | null>(null);
+  const [loading, setLoading] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     if (messages.length > 0) flatListRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
-  // Image picker handler
+  // Pick image from camera or gallery
   const pickImage = async (fromCamera: boolean) => {
-    let result;
-    if (fromCamera) {
-      result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-      });
-    } else {
-      result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-      });
+    let result: any;
+    try {
+      result = fromCamera
+        ? await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            quality: 1,
+            base64: true,
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            quality: 1,
+            base64: true,
+          });
+    } catch (e) {
+      console.error("Image picker error:", e);
+      return;
     }
 
-    if (!result.cancelled) {
-      console.log("Selected image for:", imageType, result.uri);
-      // TODO: upload to server along with imageType
-    }
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      const base64 = result.assets[0].base64;
 
-    setModalVisible(false);
-    setImageType(null);
+      setBase64Image(base64);
+
+      // Add user image message
+      const imageMessage: Message = {
+        id: Date.now().toString(),
+        imageUri: uri,
+        sender: "user",
+      };
+      setMessages((prev) => [...prev, imageMessage]);
+      setModalVisible(false);
+
+      if (!imageType) return;
+
+      setLoading(true);
+
+      // Determine API endpoint
+      const endpoint =
+        imageType === "pest"
+          ? "https://www.codersmitramandal.shop/sih/predict"
+          : "https://www.codersmitramandal.shop/sih/plantpredict";
+
+      const body = imageType === "pest" ? { image: base64 } : { image_base64: base64 };
+
+      try {
+        // Call detection API
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+
+        const detectionText =
+          imageType === "pest"
+            ? `Detected pest: ${data?.pest || "No result"}`
+            : `Detected disease: ${data?.predicted_class || "No result"}`;
+
+        // Send detection result to chatbot API
+        const chatRes = await fetch("https://www.codersmitramandal.shop/sih/chatbot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            Question: `${detectionText}. Give suggestions for this and start the answer with the detected disease/pest. For district ${district} and state ${state} only if applicable, keep it short and very precise, no greeting.`,
+            Phone_no: credentials.phone?.toString() || "",
+            Aadhar_no: credentials.aadhaar?.toString() || "",
+            ImageBase64: base64,
+            ImageType: imageType || "",
+          }),
+        });
+
+        const chatData = await chatRes.json();
+
+        const botMessage: Message = {
+          id: Date.now().toString() + "-bot",
+          text: chatData?.answer || "No answer from chatbot",
+          sender: "bot",
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      } catch (e) {
+        console.error("Detection/chatbot error:", e);
+        const botMessage: Message = {
+          id: Date.now().toString() + "-bot-error",
+          text: "Failed to get prediction or chatbot response",
+          sender: "bot",
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      }
+
+      setLoading(false);
+      setImageType(null);
+    }
   };
 
+  // Send text message to chatbot
   const sendMessage = async () => {
     if (!text.trim()) return;
 
     const userMessage = { id: Date.now().toString(), text: text.trim(), sender: "user" as const };
     setMessages((prev) => [...prev, userMessage]);
 
-    const question = `${text.trim()}. for district ${district} and state ${state} if applicable`;
+    const question = `${text.trim()}. For district ${district} and state ${state} only if applicable. If there is no disease or pest in question, speak normally. You are a farmer chatbot.`;
     setText("");
 
+    setLoading(true);
     try {
       const res = await fetch("https://www.codersmitramandal.shop/sih/chatbot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           Question: question,
-          Phone_no: credentials.phone.toString() || "",
-          Aadhar_no: credentials.aadhaar.toString() || "",
+          Phone_no: credentials.phone?.toString() || "",
+          Aadhar_no: credentials.aadhaar?.toString() || "",
+          ImageBase64: base64Image,
         }),
       });
 
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        data = { answer: "Invalid server response" };
-      }
+      const data = await res.json();
 
       const botMessage = {
         id: Date.now().toString() + "-bot",
@@ -95,16 +176,17 @@ export default function ChatBotScreen() {
         ...prev,
         { id: Date.now().toString() + "-error", text: "Something went wrong.", sender: "bot" as const },
       ]);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-white"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 95}
     >
-      {/* Container */}
       <View className="flex-1">
         {/* Top Bar */}
         <View className="h-14 flex-row items-center justify-between px-3 border-b border-gray-300 bg-gray-100">
@@ -122,11 +204,16 @@ export default function ChatBotScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View
-              className={`mb-3 p-2 rounded-lg max-w-[80%] ${
-                item.sender === "user" ? "self-end bg-gray-200" : "self-start bg-blue-100"
-              }`}
+              className={`mb-3 p-2 rounded-lg max-w-[80%] ${item.sender === "user" ? "self-end bg-gray-200" : "self-start bg-blue-100"
+                }`}
             >
-              <Text className="text-base">{item.text}</Text>
+              {item.text && <Text className="text-base">{item.text}</Text>}
+              {item.imageUri && (
+                <Image
+                  source={{ uri: item.imageUri }}
+                  style={{ width: 200, height: 200, borderRadius: 10 }}
+                />
+              )}
             </View>
           )}
           contentContainerStyle={{ padding: 10, flexGrow: 1 }}
@@ -142,20 +229,21 @@ export default function ChatBotScreen() {
             value={text}
             onChangeText={setText}
             multiline
+            editable={!loading}
           />
           {text.trim() === "" ? (
             <TouchableOpacity className="ml-2 bg-blue-500 p-3 rounded-full">
               <Ionicons name="mic-outline" size={22} color="#fff" />
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity className="ml-2 bg-blue-500 p-3 rounded-full" onPress={sendMessage}>
+            <TouchableOpacity className="ml-2 bg-blue-500 p-3 rounded-full" onPress={sendMessage} disabled={loading}>
               <Ionicons name="send-outline" size={22} color="#fff" />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      {/* Modal for Pest/Disease -> Camera/Gallery */}
+      {/* Modal for Pest/Disease */}
       <Modal transparent visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
         <View className="flex-1 justify-center items-center bg-black/50">
           <View className="bg-white rounded-lg p-6 w-80">

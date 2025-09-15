@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Linking, Image, Modal, ActivityIndicator } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Linking, Image, Modal, ActivityIndicator, Alert } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocationStore } from "@/store/locationStore";
 import { useLanguageStore } from "@/store/languageStore";
@@ -7,13 +7,35 @@ import { useLanguageStore } from "@/store/languageStore";
 export default function HomeScreen() {
   const [weather, setWeather] = useState<any>(null);
 
+  const openYouTube = (videoId: string) => {
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
+
+    Linking.openURL(url).catch(() => {
+      Alert.alert("Error", "Could not open YouTube.");
+    });
+  };
+
   // 🔹 NEW STATES FOR POPUP
   const [news, setNews] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(true);
   const [loadingNews, setLoadingNews] = useState(true);
 
   const { latitude: initialLat, longitude: initialLong } = useLocationStore();
-  const { language } = useLanguageStore();  
+  const { language } = useLanguageStore();
+
+  const videos = [
+    { id: "FEmnP6u6uKI", title: "Dragon Fruit 🐉 Farming Income" },
+    { id: "koWzEDnChFQ", title: "Turmeric Farming Profits 30-40 lakhs? | Agritalk by Abhinav Roy | #shorts" },
+    { id: "iqGiPs5ReYs", title: "Thrips Pest Management in Cotton Farming - Punjabi Video" },
+  ];
+
+  const [playingId, setPlayingId] = useState<string | null>(null);
+
+  const onStateChange = useCallback((state: string, videoId: string) => {
+    if (state === "ended") {
+      setPlayingId(null); // stop playing after end
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchWeather() {
@@ -71,7 +93,7 @@ export default function HomeScreen() {
         <View className="mb-6 bg-white rounded-2xl w-full shadow-lg">
           {/* Header */}
           <View className="flex-row justify-between items-center px-4 pt-4 pb-2">
-            <Text className="text-xl font-bold text-gray-900">आजची बातमी</Text>
+            <Text className="text-xl font-bold text-gray-900">Today's News</Text>
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
               className="p-1 rounded-full bg-gray-100"
@@ -84,7 +106,7 @@ export default function HomeScreen() {
           {loadingNews ? (
             <View className="flex-1 justify-center items-center py-6">
               <ActivityIndicator size="large" color="#f59e0b" />
-              <Text className="text-gray-500 mt-3">लोड होत आहे…</Text>
+              <Text className="text-gray-500 mt-3">Loading…</Text>
             </View>
           ) : news && Array.isArray(news.NEWS) ? (
             <ScrollView
@@ -168,39 +190,73 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* QUICK GUIDE */}
+        <View className="bg-white rounded-2xl shadow-md p-5 mb-8">
+          <Text className="text-xl font-semibold text-gray-900 mb-4">Quick Guide</Text>
+          <View className="flex-row flex-wrap justify-between">
+            {[
+              { title: "Financial Calculator", desc: "Track profits, costs & revenue." },
+              { title: "Chatbot", desc: "Get instant answers to queries." },
+              { title: "Forums", desc: "Discuss & share with the community." },
+              { title: "Profile", desc: "Manage your personal details." },
+              { title: "Settings", desc: "Customize preferences easily." },
+              { title: "Market Prices", desc: "View real-time crop prices." },
+            ].map((item, index) => (
+              <View key={index} className="w-[48%] bg-gray-50 rounded-lg p-4 mb-4 shadow-sm">
+                <Text className="text-gray-900 font-semibold text-sm mb-2">{item.title}</Text>
+                <Text className="text-gray-600 text-xs leading-5">{item.desc}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* YouTube Videos Section */}
         {/* YouTube Videos Section */}
         <View className="bg-gray-100 rounded-xl p-4 shadow-sm pt-8 mb-10">
-          <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-gray-800 font-semibold">Recommended Videos</Text>
-          </View>
+          {/* Heading */}
+          <Text className="text-xl font-bold text-gray-800 mb-4">
+            🎬 Recommended Videos
+          </Text>
 
+          {/* Horizontal Scroll for video cards */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingRight: 16 }}
           >
-            <TouchableOpacity
-              onPress={() => Linking.openURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")}
-              className="mr-4"
-            >
-              <Image
-                source={{ uri: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg" }}
-                className="w-64 h-48 rounded-lg"
-              />
-              <Text className="text-gray-700 mt-2 w-64">Introduction to Smart Farming</Text>
-            </TouchableOpacity>
+            {videos.map((video) => (
+              <TouchableOpacity
+                key={video.id}
+                onPress={() => openYouTube(video.id)}
+                className="w-72 mr-4 rounded-xl bg-white p-3 shadow-md"
+                activeOpacity={0.9}
+              >
+                {/* Thumbnail with Play Button Overlay */}
+                <View className="relative">
+                  <Image
+                    source={{ uri: `https://img.youtube.com/vi/${video.id}/hqdefault.jpg` }}
+                    className="w-full h-44 rounded-lg mb-3"
+                    resizeMode="cover"
+                    defaultSource={{ uri: `https://img.youtube.com/vi/${video.id}/hqdefault.jpg` }}
+                  />
+                  {/* Play Icon overlay */}
+                  <View className="absolute inset-0 justify-center items-center">
+                    <Ionicons name="play-circle" size={60} color="rgba(255,255,255,0.9)" />
+                  </View>
+                </View>
 
-            <TouchableOpacity
-              onPress={() => Linking.openURL("https://www.youtube.com/watch?v=ysz5S6PUM-U")}
-            >
-              <Image
-                source={{ uri: "https://img.youtube.com/vi/ysz5S6PUM-U/hqdefault.jpg" }}
-                className="w-64 h-48 rounded-lg"
-              />
-              <Text className="text-gray-700 mt-2 w-64">Crop Monitoring Techniques</Text>
-            </TouchableOpacity>
+                {/* Title + Icon */}
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-base font-semibold text-gray-800 flex-1 mr-2">
+                    {video.title}
+                  </Text>
+                  <Ionicons name="logo-youtube" size={24} color="red" />
+                </View>
+              </TouchableOpacity>
+            ))}
           </ScrollView>
         </View>
+
 
         {/* Flexible spacer */}
         <View className="flex-1" />

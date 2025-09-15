@@ -37,7 +37,7 @@ export default function DrawerLayout() {
       <View style={{ flex: 1, backgroundColor: "#fff" }}>
         {/* Header */}
         <View style={{ backgroundColor: "#065f46", padding: 20, alignItems: "center" }}>
-          <Text className="mt-10 font-bold text-white text-3xl">FARM APP</Text>
+          <Text className="mt-10 font-bold text-white text-3xl">कृषि मित्र</Text>
         </View>
 
         {/* Drawer Items */}

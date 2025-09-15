@@ -101,10 +101,6 @@ export default function LoginScreen() {
           </Picker>
         </View> */}
 
-        <Text style={styles.hint}>
-          This is a mock login. Data is stored locally in-memory (front-end) for demo only.
-        </Text>
-
         <TouchableOpacity
           style={[
             styles.loginButton,
