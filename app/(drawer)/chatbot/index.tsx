@@ -37,6 +37,7 @@ export default function ChatBotScreen() {
   const [loading, setLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
+
   useEffect(() => {
     if (messages.length > 0) flatListRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
@@ -47,15 +48,20 @@ export default function ChatBotScreen() {
     try {
       result = fromCamera
         ? await ImagePicker.launchCameraAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            quality: 1,
-            base64: true,
-          })
+          mediaTypes: ['images', 'videos'],
+          quality: 0.5,
+          allowsEditing: true,
+          base64: true,
+        })
         : await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            quality: 1,
-            base64: true,
-          });
+          mediaTypes: ['images', 'videos'],
+          quality: 0.5,
+          allowsEditing: true,
+          base64: true,
+        });
+
+      console.log("success");
+
     } catch (e) {
       console.error("Image picker error:", e);
       return;
@@ -103,26 +109,54 @@ export default function ChatBotScreen() {
             ? `Detected pest: ${data?.pest || "No result"}`
             : `Detected disease: ${data?.predicted_class || "No result"}`;
 
-        // Send detection result to chatbot API
-        const chatRes = await fetch("https://www.codersmitramandal.shop/sih/chatbot", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            Question: `${detectionText}. Give suggestions for this and start the answer with the detected disease/pest. For district ${district} and state ${state} only if applicable, keep it short and very precise, no greeting.`,
-            Phone_no: credentials.phone?.toString() || "",
-            Aadhar_no: credentials.aadhaar?.toString() || "",
-            ImageBase64: base64,
-            ImageType: imageType || "",
-          }),
-        });
+        console.log(detectionText);
 
-        const chatData = await chatRes.json();
+
+        const prompt = ` For this disease or pest ${detectionText}. In 3-5 lines give me remedy, suggestions and fertilizer solutions  
+Your task is to provide short, practical guidance for farmers. 
+
+`;
+
+        // Send detection result to chatbot API
+        // const chatRes = await fetch("https://www.codersmitramandal.shop/sih/model_resp", {
+        //   method: "POST",
+        //   headers: { "Content-Type": "application/json" },
+        //   body: JSON.stringify({
+        //     query: `${detectionText}`,
+        //     lang: `english`
+        //   }),
+        // });
+
+
+        const gem = await fetch(
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-goog-api-key": `${process.env.EXPO_PUBLIC_GEMINI_KEY}`
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
+          }
+        );
+
+        const geminiData = await gem.json();
+        const text = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+
+        let chatData = text;
+
+        if(detectionText === "No pest detected") chatData="No pest detected"
 
         const botMessage: Message = {
           id: Date.now().toString() + "-bot",
-          text: chatData?.answer || "No answer from chatbot",
+          text: chatData || "No answer from chatbot",
           sender: "bot",
         };
+
+        console.log(botMessage);
+
         setMessages((prev) => [...prev, botMessage]);
       } catch (e) {
         console.error("Detection/chatbot error:", e);
@@ -221,7 +255,7 @@ export default function ChatBotScreen() {
         />
 
         {/* Input */}
-        <View className="flex-row items-center p-2 border-t border-gray-300 bg-white">
+        <View className="flex-row items-center mb-6 p-2 border-t border-gray-300 bg-white">
           <TextInput
             className="flex-1 max-h-24 px-4 py-2 border border-gray-300 rounded-full text-base bg-gray-100"
             placeholder="Type a message..."

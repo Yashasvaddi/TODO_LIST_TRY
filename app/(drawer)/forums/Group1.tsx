@@ -125,7 +125,7 @@ export default function Group1({ navigation }) {
         />
 
         {/* Input Box */}
-        <View className="flex-row items-center border-t border-gray-300 px-3 py-2 bg-white">
+        <View className="flex-row mb-6 items-center border-t border-gray-300 px-3 py-2 bg-white">
           <TextInput
             placeholder="Type your message..."
             className="flex-1 px-3 py-2 bg-gray-100 rounded-full"
