@@ -192,7 +192,6 @@ Your task is to provide short, practical guidance for farmers.
           Question: question,
           Phone_no: credentials.phone?.toString() || "",
           Aadhar_no: credentials.aadhaar?.toString() || "",
-          ImageBase64: base64Image,
         }),
       });
 

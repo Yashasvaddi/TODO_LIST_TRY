@@ -39,8 +39,10 @@ export default function HomeScreen() {
 
   useEffect(() => {
     async function fetchWeather() {
-      const lat = initialLat; // Example: Delhi latitude
-      const lon = initialLong; // Example: Delhi longitude
+      const lat = initialLat?.toFixed(2); // Example: Delhi latitude
+      const lon = initialLong?.toFixed(2); // Example: Delhi longitude
+      console.log(lat, lon);
+      
       const apiKey = "e815fdaf6c512348023aee21fccdada5"; // ⬅️ Replace with your OpenWeather API key
 
       try {
@@ -48,6 +50,8 @@ export default function HomeScreen() {
           `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
         );
         const data = await res.json();
+        console.log(data);
+        
         setWeather(data);
       } catch (e) {
         console.log("Weather API error:", e);
@@ -55,7 +59,7 @@ export default function HomeScreen() {
     }
 
     fetchWeather();
-  }, []);
+  }, [initialLat]);
 
   // 🔹 FETCH NEWS FOR POPUP
   useEffect(() => {
