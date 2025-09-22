@@ -107,15 +107,15 @@ export default function FinancialCalculatorScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#f9f9f9' },
+  container: { flex: 1, padding: 16, backgroundColor: '#f9f9f9'},
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 4 },
   subtitle: { fontSize: 14, color: '#555', marginBottom: 16 },
-  card: { backgroundColor: '#fff', padding: 16, borderRadius: 10, marginBottom: 20, elevation: 2 },
+  card: { backgroundColor: '#fff', padding: 16, borderRadius: 20, marginBottom: 20, elevation: 2 },
   cardTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 12 },
   label: { fontSize: 14, marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 6, padding: 8, marginBottom: 12 },
+  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 16, padding: 8, marginBottom: 12 },
   row: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 },
-  button: { padding: 8, backgroundColor: '#eee', borderRadius: 6, marginRight: 8, marginBottom: 8 },
+  button: { padding: 10, backgroundColor: '#eee', borderRadius: 18, marginRight: 8, marginBottom: 8 },
   buttonSelected: { backgroundColor: '#007bff' },
   buttonText: { color: '#000' },
   resultBox: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },

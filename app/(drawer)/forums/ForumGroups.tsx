@@ -2,11 +2,11 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 
-export default function ForumGroups({ navigation }: {navigation:any}) {
+export default function ForumGroups({ navigation }: { navigation: any }) {
   const groups = [
-    { name: "Group 1", desc: "General farming discussions", route: "Group1" },
-    { name: "Group 2", desc: "Crop-specific queries", route: "Group2" },
-    { name: "Group 3", desc: "Techniques & best practices", route: "Group3" },
+    { name: "Group 1", desc: "General farming discussions", route: "Group1", pic: "🏠" },
+    { name: "Group 2", desc: "Crop-specific queries", route: "Group2", pic: "🌾" },
+    { name: "Group 3", desc: "Techniques & best practices", route: "Group3", pic: "📊" },
   ];
 
   return (
@@ -14,12 +14,22 @@ export default function ForumGroups({ navigation }: {navigation:any}) {
       {groups.map((g, i) => (
         <TouchableOpacity
           key={i}
-          style={styles.card}
           onPress={() => navigation.navigate(g.route)}
+          activeOpacity={0.8}
+          className="bg-green-800 rounded-3xl my-5 p-10 shadow-2xl transform scale-100"
         >
-          <Text style={styles.title}>{g.name}</Text>
-          <Text style={styles.desc}>{g.desc}</Text>
+          {/* Optional icon or emoji on top */}
+          <Text className="text-5xl text-center mb-4">{g.pic}</Text>
+
+          <Text className="text-white text-3xl text-center font-extrabold mb-2">
+            {g.name}
+          </Text>
+          <Text className="text-green-100 text-center text-lg leading-relaxed">
+            {g.desc}
+          </Text>
         </TouchableOpacity>
+
+
       ))}
     </ScrollView>
   );

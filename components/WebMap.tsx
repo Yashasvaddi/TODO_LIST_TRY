@@ -36,7 +36,7 @@ export default function WebMap({ coords, setCoords }: WebMapProps) {
   }, [coords]);
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 m-2">
       {/* Map */}
       <WebView
         ref={webviewRef}
@@ -92,11 +92,11 @@ export default function WebMap({ coords, setCoords }: WebMapProps) {
             }
           }}
           disabled={storeLat == null || storeLong == null}
-          className={`mt-2 p-3 rounded-xl items-center ${
+          className={`mt-2 p-3 rounded-3xl items-center ${
             storeLat == null ? "bg-gray-400" : "bg-green-600"
           }`}
         >
-          <Text className="text-white font-semibold">Fetch My Location</Text>
+          <Text className="text-white font-semibold">Go back to my Location</Text>
         </TouchableOpacity>
       </View>
     </View>

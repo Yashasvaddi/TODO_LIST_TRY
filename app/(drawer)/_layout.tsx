@@ -1,18 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { View, Text, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import { useAuthStore } from "@/store/authStore";
+import HelpScreen from "@/components/HelpScreen";
 
 export default function DrawerLayout() {
   const { t } = useTranslation();
   const pathname = usePathname();
-  
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
+
+  const [helpVisible, setHelpVisible] = useState(false);
 
   const drawerItems = [
     { name: "home", label: t("home"), icon: <FontAwesome name="home" size={24} /> },
@@ -30,7 +38,7 @@ export default function DrawerLayout() {
 
     const handleLogout = () => {
       logout();
-      router.replace("/(auth)/login")
+      router.replace("/(auth)/login");
     };
 
     return (
@@ -44,7 +52,7 @@ export default function DrawerLayout() {
         <View className="mt-5 flex-1">
           {drawerItems.map((item) => {
             const isActive = pathname?.startsWith(`/${item.name}`) ?? false;
-            
+
             return (
               <TouchableOpacity
                 key={item.name}
@@ -60,8 +68,9 @@ export default function DrawerLayout() {
                   color: isActive ? "#fff" : "#000",
                 })}
                 <Text
-                  className={`ml-3 text-2xl font-semibold ${isActive ? "text-white" : "text-black"
-                    }`}
+                  className={`ml-3 text-2xl font-semibold ${
+                    isActive ? "text-white" : "text-black"
+                  }`}
                 >
                   {item.label}
                 </Text>
@@ -97,20 +106,37 @@ export default function DrawerLayout() {
           headerTitleStyle: {
             fontWeight: "bold",
           },
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => setHelpVisible(true)}
+              style={{ marginRight: 16 }}
+            >
+              <Ionicons name="help-circle-outline" size={26} color="#fff" />
+            </TouchableOpacity>
+          ),
         }}
       >
         {drawerItems.map((item) => (
           <Drawer.Screen
             key={item.name}
-            name={`${item.name}${item.name !== "forums" ? "/index" : ""}`} // forums is special
+            name={`${item.name}${item.name !== "forums" ? "/index" : ""}`}
             options={{
               title: item.label,
               drawerLabel: item.label,
             }}
           />
         ))}
-
       </Drawer>
+
+      {/* Help Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={helpVisible}
+        onRequestClose={() => setHelpVisible(false)}
+      >
+        <HelpScreen setHelpVisible={setHelpVisible}/>
+      </Modal>
     </GestureHandlerRootView>
   );
 }

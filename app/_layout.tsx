@@ -14,12 +14,9 @@ export default function RootLayout() {
   const [mounted, setMounted] = useState(false);
   const setLocation = useLocationStore((state) => state.setLocation);
 
-
   useEffect(() => {
     setMounted(true);
   }, []);
-
-
 
   useEffect(() => {
     (async () => {

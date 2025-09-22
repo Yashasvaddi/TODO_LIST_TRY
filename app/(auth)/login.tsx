@@ -9,10 +9,10 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuthStore } from '@/store/authStore';
 import { useLanguageStore } from '@/store/languageStore';
+import { useLocationStore } from "@/store/locationStore";
 
 function formatAadhaarDisplay(digits = "") {
   return digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
@@ -20,9 +20,8 @@ function formatAadhaarDisplay(digits = "") {
 
 export default function LoginScreen() {
   const { credentials, updateCredentials, login } = useAuthStore();
-  const { language, setLanguage } = useLanguageStore();
-
-  console.log("Login screen rendered", credentials, language);
+  const { language } = useLanguageStore();
+  const { state, district } = useLocationStore()
 
   const onChangePhone = (raw: string) => {
     const digits = raw.replace(/\D/g, "").slice(0, 10);
@@ -36,7 +35,6 @@ export default function LoginScreen() {
 
   const isPhoneValid = /^[6-9]\d{9}$/.test(credentials.phone);
   const isAadhaarValid = credentials.aadhaar.length === 12;
-  // const isLanguageValid = language !== "";
 
   const handleLogin = () => {
     if (!isPhoneValid || !isAadhaarValid) {
@@ -51,19 +49,46 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={styles.container}
     >
-      <View style={styles.topBar}>
-        <TouchableOpacity>
-          <Ionicons name="person-circle-outline" size={28} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Welcome</Text>
-        <View style={{ width: 28 }} />
+      {/* Header with App Name */}
+      <View style={styles.header}>
+        <MaterialCommunityIcons name="tractor" size={40} color="#065f46" />
+        <Text style={styles.appName}>कृषि मित्र</Text>
       </View>
 
+      {/* Detected Language & Location */}
+      <View className="bg-green-100/80 border border-green-300 rounded-2xl p-4 mb-6 shadow-md">
+        <View className="mb-2">
+          <Text className="text-gray-600 font-medium text-lg text-center mb-5">Detected from your device</Text>
+        </View>
+        <View className="flex-row items-center mb-2">
+          <Ionicons name="language-outline" size={18} color="#065f46" />
+          <Text className="ml-2 text-green-800 font-semibold text-md">
+            {`Device Language: ${language.charAt(0).toUpperCase() + language.slice(1) || "N/A"}`}
+          </Text>
+        </View>
+        <View className="flex-row items-center">
+          <Ionicons name="location" size={18} color="#065f46" />
+          <Text className="ml-2 text-green-800 font-semibold text-md">
+            {`State: ${state || "--"}`}
+          </Text>
+
+        </View>
+        <View className="flex-row items-center">
+          <Ionicons name="pin" size={18} color="#FF0000" />
+          <Text className="ml-2 text-green-800 font-semibold text-md">
+            {`District: ${district || "--"}`}
+          </Text>
+        </View>
+      </View>
+
+
+      {/* Form Container */}
       <View style={styles.form}>
-        <Text style={styles.label}>Phone (India)</Text>
-        <View style={styles.phoneRow}>
-          <View style={styles.countryBox}>
-            <Text style={{ fontWeight: "600" }}>+91</Text>
+        {/* Phone Input */}
+        <Text style={styles.label}>Phone Number</Text>
+        <View style={styles.inputRow}>
+          <View style={styles.prefixBox}>
+            <Text style={styles.prefixText}>+91</Text>
           </View>
           <TextInput
             keyboardType="phone-pad"
@@ -71,117 +96,105 @@ export default function LoginScreen() {
             placeholderTextColor="#999"
             value={credentials.phone}
             onChangeText={onChangePhone}
-            style={styles.phoneInput}
+            style={styles.input}
             maxLength={10}
           />
+          <Ionicons name="call-outline" size={20} color="#065f46" style={{ marginLeft: 8 }} />
         </View>
 
-        <Text style={[styles.label, { marginTop: 16 }]}>Aadhaar number</Text>
-        <TextInput
-          keyboardType="number-pad"
-          placeholder="XXXX XXXX XXXX"
-          placeholderTextColor="#999"
-          value={formatAadhaarDisplay(credentials.aadhaar)}
-          onChangeText={onChangeAadhaar}
-          style={styles.input}
-          maxLength={14}
-        />
+        {/* Aadhaar Input */}
+        <Text style={[styles.label, { marginTop: 20 }]}>Aadhaar Number</Text>
+        <View style={styles.inputRow}>
+          <TextInput
+            keyboardType="number-pad"
+            placeholder="XXXX XXXX XXXX"
+            placeholderTextColor="#999"
+            value={formatAadhaarDisplay(credentials.aadhaar)}
+            onChangeText={onChangeAadhaar}
+            style={styles.input}
+            maxLength={14}
+          />
+          <MaterialCommunityIcons name="card-account-details-outline" size={20} color="#065f46" style={{ marginLeft: 8 }} />
+        </View>
 
-        {/* Language Picker (from languageStore) */}
-        {/* <Text style={[styles.label, { marginTop: 16 }]}>Preferred Language</Text>
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={language}
-            onValueChange={(value) => setLanguage(value)}
-          >
-            <Picker.Item label="-- Select --" value="en" />
-            <Picker.Item label="Hindi" value="hi" />
-            <Picker.Item label="English" value="en" />
-            <Picker.Item label="Punjabi" value="pa" />
-          </Picker>
-        </View> */}
-
+        {/* Login Button */}
         <TouchableOpacity
-          style={[
-            styles.loginButton,
-            !(isPhoneValid && isAadhaarValid) && { opacity: 0.6 },
-          ]}
-          disabled={!(isPhoneValid && isAadhaarValid)} 
+          style={[styles.loginButton]}
+          disabled={!(isPhoneValid && isAadhaarValid)}
           onPress={handleLogin}
         >
           <Text style={styles.loginButtonText}>Login</Text>
+          <Ionicons name="arrow-forward-outline" size={20} color="#fff" style={{ marginLeft: 8 }} />
         </TouchableOpacity>
-
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  topBar: {
-    height: 60,
+  container: { flex: 1, backgroundColor: "#f0fdf4", paddingHorizontal: 20 },
+
+  header: {
+    marginTop: 50,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#f9f9f9",
+    justifyContent: "center",
+    marginBottom: 30,
   },
-  topBarTitle: { fontSize: 18, fontWeight: "bold" },
+  appName: { fontSize: 40, fontWeight: "bold", color: "#065f46", marginLeft: 10 },
 
-  form: { padding: 16, flex: 1, justifyContent: "center" },
-  label: { fontSize: 14, marginBottom: 8, fontWeight: "600" },
+  locationCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#d1fae5",
+    padding: 12,
+    borderRadius: 20,
+    marginBottom: 30,
+    borderWidth: 1,
+    borderColor: "#10b981",
+  },
+  locationText: { color: "#065f46", fontWeight: "600" },
 
-  phoneRow: { flexDirection: "row", alignItems: "center" },
-  countryBox: {
-    backgroundColor: "#f0f0f0",
-    paddingHorizontal: 10,
-    paddingVertical: 12,
+  form: { flex: 1, justifyContent: "flex-start"},
+
+  label: { fontSize: 14, marginBottom: 8, fontWeight: "600", color: "#065f46" },
+
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ecfdf5",
     borderRadius: 25,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#10b981",
+  },
+  prefixBox: {
+    backgroundColor: "#10b981",
+    paddingHorizontal: 15,
+    paddingVertical: 5,
     marginRight: 8,
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  phoneInput: {
-    flex: 1,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
     borderRadius: 25,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#f9f9f9",
-    fontSize: 16,
   },
-
+  prefixText: { color: "#fff", fontWeight: "600" },
   input: {
-    marginTop: 4,
-    paddingHorizontal: 15,
+    flex: 1,
     paddingVertical: 12,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#f9f9f9",
     fontSize: 16,
+    color: "#065f46",
   },
-
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 25,
-    backgroundColor: "#f9f9f9",
-    marginTop: 4,
-  },
-
-  hint: { color: "#666", marginTop: 10, fontSize: 12 },
 
   loginButton: {
-    marginTop: 20,
-    backgroundColor: "#007AFF",
+    flexDirection: "row",
+    marginTop: 30,
+    backgroundColor: "#065f46",
     paddingVertical: 14,
     borderRadius: 25,
     alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 10,
   },
-  loginButtonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
+  loginButtonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
 });
