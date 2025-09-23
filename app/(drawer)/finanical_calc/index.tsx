@@ -10,14 +10,12 @@ export default function FinancialCalculatorScreen() {
   ];
 
   const [selectedCrop, setSelectedCrop] = useState('Rice');
-  // 👇 keep as string so inputs can be empty
   const [farmArea, setFarmArea] = useState("");
   const [expectedYield, setExpectedYield] = useState("");
-  const [marketPrice, setMarketPrice] = useState("");
+  const [marketPrice, setMarketPrice] = useState("2000"); // default value set
 
   const selectedCropData = cropCostData.find(crop => crop.crop === selectedCrop) || cropCostData[0];
 
-  // 👇 safely convert to numbers for calculations
   const area = parseFloat(farmArea) || 0;
   const yieldValue = parseFloat(expectedYield) || 0;
   const price = parseFloat(marketPrice) || 0;
@@ -29,14 +27,13 @@ export default function FinancialCalculatorScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Agriculture Financial Calculator</Text>
-      <Text style={styles.subtitle}>
-        Crop cost, profit estimation and planning
-      </Text>
+      <Text style={styles.title}>Financial Calculator</Text>
+      <Text style={styles.subtitle}>Crop cost, profit estimation and planning</Text>
 
       {/* Crop Input Section */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Crop Details</Text>
+
         <Text style={styles.label}>Select Crop</Text>
         <View style={styles.row}>
           {cropCostData.map(crop => (
@@ -48,7 +45,10 @@ export default function FinancialCalculatorScreen() {
               ]}
               onPress={() => setSelectedCrop(crop.crop)}
             >
-              <Text style={styles.buttonText}>{crop.crop}</Text>
+              <Text style={[
+                styles.buttonText,
+                selectedCrop === crop.crop && { color: '#fff', fontWeight: '600' }
+              ]}>{crop.crop}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -81,23 +81,23 @@ export default function FinancialCalculatorScreen() {
       {/* Results */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Financial Analysis of {selectedCrop}</Text>
-        <View style={styles.resultBox}>
+        <View style={[styles.resultBox, { backgroundColor: '#f0f8ff', borderRadius: 8, padding: 10 }]}>
           <Text style={styles.resultLabel}>Total Cost:</Text>
           <Text style={styles.resultValue}>₹{totalCost.toLocaleString('en-IN')}</Text>
         </View>
-        <View style={styles.resultBox}>
+        <View style={[styles.resultBox, { backgroundColor: '#e6ffed', borderRadius: 8, padding: 10 }]}>
           <Text style={styles.resultLabel}>Expected Revenue:</Text>
           <Text style={[styles.resultValue, { color: 'green' }]}>
             ₹{expectedRevenue.toLocaleString('en-IN')}
           </Text>
         </View>
-        <View style={styles.resultBox}>
+        <View style={[styles.resultBox, { backgroundColor: expectedProfit >= 0 ? '#e6ffed' : '#ffe6e6', borderRadius: 8, padding: 10 }]}>
           <Text style={styles.resultLabel}>Net Profit:</Text>
           <Text style={[styles.resultValue, { color: expectedProfit >= 0 ? 'green' : 'red' }]}>
             ₹{expectedProfit.toLocaleString('en-IN')}
           </Text>
         </View>
-        <View style={styles.resultBox}>
+        <View style={[styles.resultBox, { backgroundColor: '#fff3e6', borderRadius: 8, padding: 10 }]}>
           <Text style={styles.resultLabel}>Profit Margin:</Text>
           <Text style={styles.resultValue}>{profitMargin}%</Text>
         </View>
@@ -108,17 +108,32 @@ export default function FinancialCalculatorScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: '#f9f9f9' },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 4 },
-  subtitle: { fontSize: 14, color: '#555', marginBottom: 16 },
-  card: { backgroundColor: '#fff', padding: 16, borderRadius: 10, marginBottom: 20, elevation: 2 },
-  cardTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 12 },
-  label: { fontSize: 14, marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 6, padding: 8, marginBottom: 12 },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 4, color: '#333' },
+  subtitle: { fontSize: 14, color: '#555', marginBottom: 20 },
+  card: { backgroundColor: '#fff', padding: 20, borderRadius: 12, marginBottom: 20, elevation: 3 },
+  cardTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#007bff' },
+  label: { fontSize: 14, marginBottom: 6, color: '#555' },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+    backgroundColor: '#fafafa',
+    elevation: 1
+  },
   row: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 },
-  button: { padding: 8, backgroundColor: '#eee', borderRadius: 6, marginRight: 8, marginBottom: 8 },
-  buttonSelected: { backgroundColor: '#007bff' },
-  buttonText: { color: '#000' },
-  resultBox: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  resultLabel: { fontSize: 16, fontWeight: '500' },
-  resultValue: { fontSize: 16, fontWeight: 'bold' },
+  button: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#eee',
+    borderRadius: 8,
+    marginRight: 8,
+    marginBottom: 8
+  },
+  buttonSelected: { backgroundColor: '#020d1aff', color: 'white' },
+  buttonText: { color: '#000', fontWeight: '500' },
+  resultBox: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  resultLabel: { fontSize: 16, fontWeight: '500', color: '#333' },
+  resultValue: { fontSize: 16, fontWeight: 'bold', color: '#000' },
 });

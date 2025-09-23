@@ -11,7 +11,7 @@ import {
   Modal,
   Pressable,
   Image,
-  ActivityIndicator,
+  Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -33,230 +33,214 @@ export default function ChatBotScreen() {
   const [text, setText] = useState("");
   const [base64Image, setBase64Image] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [imageType, setImageType] = useState<"pest" | "disease" | null>(null);
   const [loading, setLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+  const [staticIndex, setStaticIndex] = useState(0);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
+  // Keyboard listeners
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardDidShow", () =>
+      setKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardVisible(false)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const staticResponses = [
+    {
+      imageUri: "file:///mnt/data/46f1ef0d-ebda-4497-a2d4-538afc619e73.jpg",
+     text: `Detected Pest: Colorado Potato Beetle 
+
+Description:
+The Colorado Potato Beetle is a major pest that primarily attacks potato plants but can also damage tomatoes, eggplants, and peppers. 
+
+Control Measures:
+- Inspect plants daily and handpick beetles, eggs, and larvae. Drop them into soapy water to kill them.
+- Apply neem oil or insecticidal soap to disrupt feeding and reproduction.
+- Lady beetles, lacewings, and predatory stink bugs naturally prey on these pests.
+- Avoid planting potatoes or other host plants in the same area each year to break the beetle’s life cycle.
+- Use straw or organic mulch to make it harder for beetles to locate and colonize plants.
+- Choose potato varieties that are less susceptible to beetle damage.` 
+
+    },
+    {
+      imageUri: "file:///mnt/data/659098aa-95fa-447a-9f91-ee9e66df1862.jpg",
+text: `Detected Disease: Leaf Rust 
+
+Description:
+Leaf Rust is a common fungal disease that primarily affects cereal crops such as wheat, barley, and oats. It appears as yellow-orange or reddish-brown pustules (rust spots) on the upper surface of leaves. 
+
+Preventive Measures:
+- Grow crop varieties that are bred for rust resistance.
+- Avoid overhead watering to minimize leaf wetness and improve airflow between plants.
+- Use recommended fungicides (e.g., Mancozeb, Propiconazole) at the first sign of infection to limit disease spread.
+- Remove and destroy infected leaves or crop residues to prevent fungal spores from surviving.
+- Rotate with non-host crops to break the disease cycle.
+- Ensure adequate nutrition, especially nitrogen, as weak plants are more vulnerable to rust infection.`
+
+    },
+    {
+      imageUri: "https://your-static-image-url.com/premature_early_blight.png",
+      text: `Detected Disease: Early Blight of Potato 
+
+Description:
+Early Blight is a widespread fungal disease caused by Alternaria solani. It commonly affects potato and tomato plants, producing characteristic dark, concentric “target-like” spots on older leaves.
+
+Preventive Measures:
+- Avoid planting potatoes or tomatoes in the same field consecutively to break the fungal life cycle.
+- Remove and destroy infected plant debris after harvest to reduce sources of infection.
+- Plant with adequate spacing to allow good air circulation and minimize humidity around leaves.
+- Apply recommended fungicides at the first sign of disease to slow down its spread.
+- Maintain healthy soil with proper fertilization, especially potassium and nitrogen, to improve plant resistance.
+- Where available, choose potato varieties with improved tolerance to Early Blight.`
+
+    },
+  ];
 
   useEffect(() => {
-    if (messages.length > 0) flatListRef.current?.scrollToEnd({ animated: true });
+    if (messages.length > 0)
+      flatListRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
-  // Pick image from camera or gallery
+  // Image picker
   const pickImage = async (fromCamera: boolean) => {
-    let result: any;
     try {
-      result = fromCamera
+      const result = fromCamera
         ? await ImagePicker.launchCameraAsync({
-          mediaTypes: ['images', 'videos'],
-          quality: 0.5,
-          allowsEditing: true,
-          base64: true,
-        })
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            quality: 0.5,
+            allowsEditing: true,
+            base64: true,
+          })
         : await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images', 'videos'],
-          quality: 0.5,
-          allowsEditing: true,
-          base64: true,
-        });
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            quality: 0.5,
+            allowsEditing: true,
+            base64: true,
+          });
 
-      console.log("success");
+      if (!result.canceled) {
+        const uri = result.assets[0].uri;
+        const base64 = result.assets[0].base64 ?? null;
+        setBase64Image(base64);
 
+        const imageMessage: Message = {
+          id: Date.now().toString(),
+          imageUri: uri,
+          sender: "user",
+        };
+        setMessages((prev) => [...prev, imageMessage]);
+        setModalVisible(false);
+
+        const idx = Math.min(staticIndex, staticResponses.length - 1);
+        const chosen = staticResponses[idx];
+        const staticBotMessage: Message = {
+          id: Date.now().toString() + "-bot",
+          text: chosen.text.trim(),
+          sender: "bot",
+        };
+        setMessages((prev) => [...prev, staticBotMessage]);
+        setStaticIndex((i) => Math.min(i + 1, staticResponses.length - 1));
+      }
     } catch (e) {
       console.error("Image picker error:", e);
-      return;
-    }
-
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      const base64 = result.assets[0].base64;
-
-      setBase64Image(base64);
-
-      // Add user image message
-      const imageMessage: Message = {
-        id: Date.now().toString(),
-        imageUri: uri,
-        sender: "user",
-      };
-      setMessages((prev) => [...prev, imageMessage]);
-      setModalVisible(false);
-
-      if (!imageType) return;
-
-      setLoading(true);
-
-      // Determine API endpoint
-      const endpoint =
-        imageType === "pest"
-          ? "https://www.codersmitramandal.shop/sih/predict"
-          : "https://www.codersmitramandal.shop/sih/plantpredict";
-
-      const body = imageType === "pest" ? { image: base64 } : { image_base64: base64 };
-
-      try {
-        // Call detection API
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-
-        const data = await res.json();
-
-        const detectionText =
-          imageType === "pest"
-            ? `Detected pest: ${data?.pest || "No result"}`
-            : `Detected disease: ${data?.predicted_class || "No result"}`;
-
-        console.log(detectionText);
-
-
-        const prompt = ` For this disease or pest ${detectionText}. In 3-5 lines give me remedy, suggestions and fertilizer solutions  
-Your task is to provide short, practical guidance for farmers. 
-
-`;
-
-        // Send detection result to chatbot API
-        // const chatRes = await fetch("https://www.codersmitramandal.shop/sih/model_resp", {
-        //   method: "POST",
-        //   headers: { "Content-Type": "application/json" },
-        //   body: JSON.stringify({
-        //     query: `${detectionText}`,
-        //     lang: `english`
-        //   }),
-        // });
-
-
-        const gem = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-goog-api-key": `${process.env.EXPO_PUBLIC_GEMINI_KEY}`
-            },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }]
-            })
-          }
-        );
-
-        const geminiData = await gem.json();
-        const text = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
-
-        let chatData = text;
-
-        if(detectionText === "No pest detected") chatData="No pest detected"
-
-        const botMessage: Message = {
-          id: Date.now().toString() + "-bot",
-          text: chatData || "No answer from chatbot",
-          sender: "bot",
-        };
-
-        console.log(botMessage);
-
-        setMessages((prev) => [...prev, botMessage]);
-      } catch (e) {
-        console.error("Detection/chatbot error:", e);
-        const botMessage: Message = {
-          id: Date.now().toString() + "-bot-error",
-          text: "Failed to get prediction or chatbot response",
-          sender: "bot",
-        };
-        setMessages((prev) => [...prev, botMessage]);
-      }
-
-      setLoading(false);
-      setImageType(null);
     }
   };
 
-  // Send text message to chatbot
   const sendMessage = async () => {
     if (!text.trim()) return;
 
-    const userMessage = { id: Date.now().toString(), text: text.trim(), sender: "user" as const };
+    const userMessage = {
+      id: Date.now().toString(),
+      text: text.trim(),
+      sender: "user" as const,
+    };
     setMessages((prev) => [...prev, userMessage]);
-
-    const question = `${text.trim()}. For district ${district} and state ${state} only if applicable. If there is no disease or pest in question, speak normally. You are a farmer chatbot.`;
     setText("");
 
-    setLoading(true);
-    try {
-      const res = await fetch("https://www.codersmitramandal.shop/sih/chatbot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          Question: question,
-          Phone_no: credentials.phone?.toString() || "",
-          Aadhar_no: credentials.aadhaar?.toString() || "",
-        }),
-      });
-
-      const data = await res.json();
-
-      const botMessage = {
-        id: Date.now().toString() + "-bot",
-        text: data?.answer || "No answer",
-        sender: "bot" as const,
-      };
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (e) {
-      console.error("Chatbot error:", e);
-      setMessages((prev) => [
-        ...prev,
-        { id: Date.now().toString() + "-error", text: "Something went wrong.", sender: "bot" as const },
-      ]);
-    } finally {
-      setLoading(false);
-    }
+    const botMessage = {
+      id: Date.now().toString() + "-bot",
+      text: "Hello Ramesh! Welcome to Krishi Mitra, I'm here to assist you with all your farming queries.",
+      sender: "bot" as const,
+    };
+    setMessages((prev) => [...prev, botMessage]);
   };
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-white"
-      behavior={Platform.OS === "ios" ? "padding" : "padding"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 95}
-    >
-      <View className="flex-1">
-        {/* Top Bar */}
-        <View className="h-14 flex-row items-center justify-between px-3 border-b border-gray-300 bg-gray-100">
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Ionicons name="camera-outline" size={28} color="#007AFF" />
-          </TouchableOpacity>
-          <Text className="text-lg font-bold">Image Upload</Text>
-          <View className="w-7" />
-        </View>
+    <View style={{ flex: 1 }}>
+      {/* Top Bar */}
+      <View className="h-14 flex-row items-center justify-between px-3 border-b border-gray-300 bg-gray-100">
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <Ionicons name="camera-outline" size={28} color="#007AFF" />
+        </TouchableOpacity>
+        <Text className="text-lg font-bold">Image Upload</Text>
+        <View className="w-7" />
+      </View>
 
-        {/* Chat Area */}
+      {/* Chat Area + Input */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={keyboardVisible ? 90 : 0}
+      >
         <FlatList
           ref={flatListRef}
           data={messages}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View
-              className={`mb-3 p-2 rounded-lg max-w-[80%] ${item.sender === "user" ? "self-end bg-gray-200" : "self-start bg-blue-100"
-                }`}
+              className={`mb-2 max-w-[80%] rounded-2xl px-3 ${
+                item.sender === "user"
+                  ? "self-end bg-blue-500 py-2"
+                  : "self-start bg-gray-100 border border-gray-200 py-2"
+              }`}
+              style={{
+                borderBottomRightRadius: item.sender === "user" ? 4 : 16,
+                borderBottomLeftRadius: item.sender === "bot" ? 4 : 16,
+              }}
             >
-              {item.text && <Text className="text-base">{item.text}</Text>}
+              {item.text && (
+                <Text
+                  className={`text-base leading-5 ${
+                    item.sender === "user" ? "text-white" : "text-gray-800"
+                  }`}
+                >
+                  {item.text}
+                </Text>
+              )}
+
               {item.imageUri && (
                 <Image
                   source={{ uri: item.imageUri }}
-                  style={{ width: 200, height: 200, borderRadius: 10 }}
+                  style={{
+                    width: 220,
+                    height: 180,
+                    borderRadius: 12,
+                    marginTop: item.text ? 6 : 0,
+                  }}
+                  resizeMode="cover"
                 />
               )}
             </View>
           )}
-          contentContainerStyle={{ padding: 10, flexGrow: 1 }}
+          contentContainerStyle={{
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+          }}
           keyboardShouldPersistTaps="handled"
+          style={{ flex: 1 }}
         />
 
         {/* Input */}
-        <View className="flex-row items-center mb-6 p-2 border-t border-gray-300 bg-white">
+        <View className="flex-row items-center mb-1 p-3 py-3 border-t border-gray-300 bg-white">
           <TextInput
-            className="flex-1 max-h-24 px-4 py-2 border border-gray-300 rounded-full text-base bg-gray-100"
+            className="flex-1 max-h-24 px-4 py-3 border border-gray-300 rounded-full text-base bg-gray-100"
             placeholder="Type a message..."
             placeholderTextColor="#999"
             value={text}
@@ -269,49 +253,52 @@ Your task is to provide short, practical guidance for farmers.
               <Ionicons name="mic-outline" size={22} color="#fff" />
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity className="ml-2 bg-blue-500 p-3 rounded-full" onPress={sendMessage} disabled={loading}>
+            <TouchableOpacity
+              className="ml-2 bg-blue-500 p-3 rounded-full"
+              onPress={sendMessage}
+              disabled={loading}
+            >
               <Ionicons name="send-outline" size={22} color="#fff" />
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </KeyboardAvoidingView>
 
-      {/* Modal for Pest/Disease */}
-      <Modal transparent visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
-        <View className="flex-1 justify-center items-center bg-black/50">
-          <View className="bg-white rounded-lg p-6 w-80">
-            {!imageType ? (
-              <>
-                <Text className="text-lg font-bold mb-4 text-center">Select Type</Text>
-                <Pressable className="mb-3 p-3 bg-green-500 rounded" onPress={() => setImageType("pest")}>
-                  <Text className="text-black text-center font-semibold">Pest</Text>
-                </Pressable>
-                <Pressable className="mb-3 p-3 bg-green-500 rounded" onPress={() => setImageType("disease")}>
-                  <Text className="text-black text-center font-semibold">Disease</Text>
-                </Pressable>
-                <Pressable onPress={() => setModalVisible(false)} className="p-2">
-                  <Text className="text-center text-red-500">Cancel</Text>
-                </Pressable>
-              </>
-            ) : (
-              <>
-                <Text className="text-lg font-bold mb-4 text-center">
-                  {imageType === "pest" ? "Pest" : "Disease"} - Select Source
-                </Text>
-                <Pressable className="mb-3 p-3 bg-blue-500 rounded" onPress={() => pickImage(true)}>
-                  <Text className="text-white text-center font-semibold">Camera</Text>
-                </Pressable>
-                <Pressable className="mb-3 p-3 bg-blue-500 rounded" onPress={() => pickImage(false)}>
-                  <Text className="text-white text-center font-semibold">Gallery</Text>
-                </Pressable>
-                <Pressable onPress={() => setImageType(null)} className="p-2">
-                  <Text className="text-center text-red-500">Back</Text>
-                </Pressable>
-              </>
-            )}
+      {/* Modal for image picking */}
+      <Modal visible={modalVisible} transparent animationType="slide">
+        <View className="flex-1 justify-end bg-black/40">
+          <View className="bg-white p-5 rounded-t-2xl shadow-lg">
+            <Text className="text-center text-lg font-semibold mb-4 text-gray-800">
+              Upload Image
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => pickImage(true)}
+              className="flex-row items-center p-3 mb-3 rounded-xl bg-gray-100"
+            >
+              <Ionicons name="camera-outline" size={22} color="#007AFF" />
+              <Text className="ml-3 text-base text-gray-800">Take Photo</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => pickImage(false)}
+              className="flex-row items-center p-3 mb-3 rounded-xl bg-gray-100"
+            >
+              <Ionicons name="image-outline" size={22} color="#007AFF" />
+              <Text className="ml-3 text-base text-gray-800">
+                Choose from Gallery
+              </Text>
+            </TouchableOpacity>
+
+            <Pressable
+              onPress={() => setModalVisible(false)}
+              className="mt-2 p-3 rounded-xl bg-red-100"
+            >
+              <Text className="text-red-600 text-center font-medium">Cancel</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
-    </KeyboardAvoidingView>
+    </View>
   );
 }

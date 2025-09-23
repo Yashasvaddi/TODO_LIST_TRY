@@ -1,12 +1,24 @@
-import { Stack, Redirect, useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { useLocationStore } from '@/store/locationStore';
+import * as Notifications from 'expo-notifications';
 import '../global.css';
 import "../i18n";
+
+// ✅ Configure notification handler ONCE, globally
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 export default function RootLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -14,13 +26,11 @@ export default function RootLayout() {
   const [mounted, setMounted] = useState(false);
   const setLocation = useLocationStore((state) => state.setLocation);
 
-
   useEffect(() => {
     setMounted(true);
   }, []);
 
-
-
+  // 📍 Location setup
   useEffect(() => {
     (async () => {
       try {
@@ -41,7 +51,30 @@ export default function RootLayout() {
     })();
   }, []);
 
+  // 🔔 Schedule notification after app starts
+  useEffect(() => {
+    (async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Notification permission not granted");
+        return;
+      }
 
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Hey Farmer 👩‍🌾",
+        body: "Don't forget to check out our calculator and forums!",
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: 20,
+        repeats: false,
+      },
+    });
+    })();
+  }, []);
+
+  // 🚪 Auth-based navigation
   useEffect(() => {
     if (!mounted || isAuthenticated === undefined) return;
 
@@ -56,7 +89,6 @@ export default function RootLayout() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
-
       </View>
     );
   }
