@@ -113,6 +113,7 @@ export default function MarketForm({
       <View style={{ marginBottom: 16 }}>
         <Text style={{ fontWeight: "600", fontSize: 16, marginBottom: 6 }}>State</Text>
         <TouchableOpacity
+        activeOpacity={1}
           onPress={() => setStateDropdownVisible(true)}
           style={{
             padding: 14,
@@ -181,6 +182,7 @@ export default function MarketForm({
 
       {/* Submit */}
       <TouchableOpacity
+        activeOpacity={1}
         onPress={handleSubmit}
         disabled={loading || !selectedState || !selectedDistrict || !crop}
         style={{
