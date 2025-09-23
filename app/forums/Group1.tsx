@@ -57,7 +57,11 @@ export default function Group1({ navigation }: {navigation:any}) {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 95} // adjust if header overlaps
+    >
       <View className="flex-1 bg-white">
         {/* Header */}
         <View className="flex-row items-center px-4 py-3 border-b border-gray-300">
