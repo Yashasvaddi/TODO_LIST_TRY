@@ -5,20 +5,8 @@ import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { useLocationStore } from '@/store/locationStore';
-import * as Notifications from 'expo-notifications';
 import '../global.css';
 import "../i18n";
-
-// ✅ Configure notification handler ONCE, globally
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
 
 export default function RootLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -48,29 +36,6 @@ export default function RootLayout() {
       } catch (err) {
         console.log("Error fetching location:", err);
       }
-    })();
-  }, []);
-
-  // 🔔 Schedule notification after app starts
-  useEffect(() => {
-    (async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Notification permission not granted");
-        return;
-      }
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Hey Farmer 👩‍🌾",
-        body: "Don't forget to check out our calculator and forums!",
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: 20,
-        repeats: false,
-      },
-    });
     })();
   }, []);
 

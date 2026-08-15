@@ -14,6 +14,16 @@ import { Drawer } from "expo-router/drawer";
 import { useAuthStore } from "@/store/authStore";
 import HelpScreen from "@/components/HelpScreen";
 
+type DrawerRoute =
+  | "/(drawer)/home"
+  | "/(drawer)/chatbot"
+  | "/(drawer)/soil"
+  | "/(drawer)/market_prices"
+  | "/(drawer)/finanical_calc"
+  | "/(drawer)/forums"
+  | "/(drawer)/profile"
+  | "/(drawer)/settings";
+
 export default function DrawerLayout() {
   const { t } = useTranslation();
   const pathname = usePathname();
@@ -22,19 +32,18 @@ export default function DrawerLayout() {
 
   const [helpVisible, setHelpVisible] = useState(false);
 
-  const drawerItems = [
-    { name: "home", label: t("home"), icon: <FontAwesome name="home" size={24} /> },
-    { name: "chatbot", label: t("chatBot"), icon: <Ionicons name="chatbubbles" size={24} /> },
-    { name: "soil", label: t("soilHealth"), icon: <MaterialIcons name="grass" size={24} /> },
-    { name: "market_prices", label: t("marketStats"), icon: <FontAwesome name="line-chart" size={24} /> },
-    { name: "finanical_calc", label: t("Calculator"), icon: <Ionicons name="calculator" size={24} /> },
-    { name: "forums", label: t("forums"), icon: <Ionicons name="people-outline" size={24} /> },
-    { name: "profile", label: t("profile"), icon: <FontAwesome name="user" size={24} /> },
-    { name: "settings", label: t("settings"), icon: <Ionicons name="settings" size={24} /> },
+  const drawerItems: { name: string; route: DrawerRoute; label: string; icon: React.ReactElement }[] = [
+    { name: "home", route: "/(drawer)/home", label: t("home"), icon: <FontAwesome name="home" size={24} /> },
+    { name: "chatbot", route: "/(drawer)/chatbot", label: t("chatBot"), icon: <Ionicons name="chatbubbles" size={24} /> },
+    { name: "soil", route: "/(drawer)/soil", label: t("soilHealth"), icon: <MaterialIcons name="grass" size={24} /> },
+    { name: "market_prices", route: "/(drawer)/market_prices", label: t("marketStats"), icon: <FontAwesome name="line-chart" size={24} /> },
+    { name: "finanical_calc", route: "/(drawer)/finanical_calc", label: t("Calculator"), icon: <Ionicons name="calculator" size={24} /> },
+    { name: "forums", route: "/(drawer)/forums", label: t("forums"), icon: <Ionicons name="people-outline" size={24} /> },
+    { name: "profile", route: "/(drawer)/profile", label: t("profile"), icon: <FontAwesome name="user" size={24} /> },
+    { name: "settings", route: "/(drawer)/settings", label: t("settings"), icon: <Ionicons name="settings" size={24} /> },
   ];
 
   const CustomDrawerContent = () => {
-    const currentPage = pathname?.replace("/(drawer)/", "") ?? "";
 
     const handleLogout = () => {
       logout();
@@ -51,20 +60,20 @@ export default function DrawerLayout() {
         {/* Drawer Items */}
         <View className="mt-5 flex-1">
           {drawerItems.map((item) => {
-            const isActive = pathname?.startsWith(`/${item.name}`) ?? false;
+            const isActive = pathname === item.route || pathname?.startsWith(`${item.route}/`) || false;
 
             return (
               <TouchableOpacity
                 key={item.name}
                 onPress={() => {
-                  if (pathname !== `/(drawer)/${item.name}`) {
-                    router.push(`/(drawer)/${item.name}`);
+                  if (pathname !== item.route) {
+                    router.push(item.route);
                   }
                 }}
                 className={`flex-row items-center py-4 px-6 mx-6 rounded-lg border-b-2 
                   ${isActive ? "bg-green-700 border-green-900" : "border-gray-400"}`}
               >
-                {React.cloneElement(item.icon, {
+                {React.cloneElement(item.icon as React.ReactElement<any>, {
                   color: isActive ? "#fff" : "#000",
                 })}
                 <Text
@@ -96,7 +105,7 @@ export default function DrawerLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Drawer
-        drawerContent={(props) => <CustomDrawerContent {...props} />}
+        drawerContent={() => <CustomDrawerContent />}
         screenOptions={{
           headerShown: true,
           headerStyle: {

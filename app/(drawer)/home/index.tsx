@@ -5,12 +5,20 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Linking,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocationStore } from "@/store/locationStore";
 
+type WeatherData = {
+  main: { temp: number; feels_like: number; humidity: number };
+  wind: { speed: number };
+  rain?: { "1h": number };
+  sys: { sunrise: number; sunset: number };
+};
+
 export default function HomeScreen() {
-  const [weather, setWeather] = useState<any>(null);
+  const [weather, setWeather] = useState<WeatherData | null>(null);
 
   const { latitude: initialLat, longitude: initialLong } = useLocationStore();
 
@@ -59,26 +67,37 @@ export default function HomeScreen() {
     "Maharashtra farmers shift towards soybean due to better MSP.",
   ];
 
-  // 🔹 Fetch Weather (still using API)
+  // Create local weather values so this screen stays frontend-only.
   useEffect(() => {
-    async function fetchWeather() {
-      const lat = initialLat?.toFixed(2);
-      const lon = initialLong?.toFixed(2);
-      const apiKey = "e815fdaf6c512348023aee21fccdada5";
+    const lat = initialLat ?? 19.076;
+    const lon = initialLong ?? 72.877;
+    const variability = Math.abs(Math.sin(lat + lon));
+    const temp = Math.round((22 + variability * 14) * 10) / 10;
 
-      try {
-        const res = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
-        );
-        const data = await res.json();
-        setWeather(data);
-      } catch (e) {
-        console.log("Weather API error:", e);
-      }
-    }
+    const now = new Date();
+    const sunrise = new Date(now);
+    sunrise.setHours(6, 10, 0, 0);
+    const sunset = new Date(now);
+    sunset.setHours(18, 35, 0, 0);
 
-    fetchWeather();
-  }, [initialLat]);
+    setWeather({
+      main: {
+        temp,
+        feels_like: Math.round((temp + 1.2) * 10) / 10,
+        humidity: Math.round(45 + variability * 35),
+      },
+      wind: {
+        speed: Math.round((1.5 + variability * 5) * 10) / 10,
+      },
+      rain: {
+        "1h": variability > 0.6 ? 1 : 0,
+      },
+      sys: {
+        sunrise: Math.floor(sunrise.getTime() / 1000),
+        sunset: Math.floor(sunset.getTime() / 1000),
+      },
+    });
+  }, [initialLat, initialLong]);
 
   return (
     <ScrollView className="flex-1 bg-white p-4" showsVerticalScrollIndicator={false}>

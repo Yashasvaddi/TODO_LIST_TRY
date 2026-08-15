@@ -10,6 +10,7 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const initialMessages = [
   { id: "1", name: "Amit", text: "Anyone tried organic fertilizers?", type: "left" },
@@ -18,7 +19,8 @@ const initialMessages = [
   { id: "4", name: "Amit", text: "A bit, but long-term benefits are better.", type: "left" },
 ];
 
-export default function Group2({ navigation }: {navigation:any}) {
+export default function Group2() {
+  const router = useRouter();
   const [messages, setMessages] = useState(initialMessages);
   const [inputText, setInputText] = useState("");
   const flatListRef = useRef(null);
@@ -47,7 +49,7 @@ export default function Group2({ navigation }: {navigation:any}) {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View className="flex-1 bg-white">
         <View className="flex-row items-center px-4 py-3 border-b border-gray-300">
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
           <Text className="ml-4 text-lg font-semibold">Organic Farming (Group 2)</Text>

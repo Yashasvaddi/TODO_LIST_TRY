@@ -1,12 +1,14 @@
 // screens/Forum/ForumGroups.js
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 
-export default function ForumGroups({ navigation }: { navigation: any }) {
+export default function ForumGroups() {
+  const router = useRouter();
   const groups = [
-    { name: "Group 1", desc: "General farming discussions", route: "Group1", pic: "🏠" },
-    { name: "Group 2", desc: "Crop-specific queries", route: "Group2", pic: "🌾" },
-    { name: "Group 3", desc: "Techniques & best practices", route: "Group3", pic: "📊" },
+    { name: "Group 1", desc: "General farming discussions", route: "/(drawer)/forums/Group1", pic: "🏠" },
+    { name: "Group 2", desc: "Crop-specific queries", route: "/(drawer)/forums/Group2", pic: "🌾" },
+    { name: "Group 3", desc: "Techniques & best practices", route: "/(drawer)/forums/Group3", pic: "📊" },
   ];
 
   return (
@@ -14,7 +16,7 @@ export default function ForumGroups({ navigation }: { navigation: any }) {
       {groups.map((g, i) => (
         <TouchableOpacity
           key={i}
-          onPress={() => navigation.navigate(g.route)}
+          onPress={() => router.push(g.route as any)}
           activeOpacity={0.8}
           className="bg-green-800 rounded-3xl my-5 p-10 shadow-2xl transform scale-100"
         >

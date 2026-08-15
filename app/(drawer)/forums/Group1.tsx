@@ -14,9 +14,18 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
+import { useRouter } from "expo-router";
 
-export default function Group1({ navigation }) {
-  const [messages, setMessages] = useState([
+type ForumMessage = {
+  id: string;
+  name: string;
+  text: string;
+  type: "left" | "right";
+};
+
+export default function Group1() {
+  const router = useRouter();
+  const [messages, setMessages] = useState<ForumMessage[]>([
     {
       id: "1",
       name: "Bhaswati",
@@ -46,8 +55,7 @@ export default function Group1({ navigation }) {
   const [summary, setSummary] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
-  const flatListRef = useRef(null);
-  const ws = useRef<WebSocket | null>(null);
+  const flatListRef = useRef<FlatList<ForumMessage>>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   // Keyboard listeners
@@ -64,70 +72,33 @@ export default function Group1({ navigation }) {
     };
   }, []);
 
-  useEffect(() => {
-    ws.current = new WebSocket("wss://codersmitramandal.shop/sih/ws/group1");
+  const generateSummary = React.useCallback(() => {
+    const recent = messages.slice(-5);
+    const mentionsWater = recent.filter((m) => /water|irrigat/i.test(m.text)).length;
+    const mentionsFertilizer = recent.filter((m) => /fertiliz|compost|manure/i.test(m.text)).length;
+    const mentionsPest = recent.filter((m) => /pest|disease|insect/i.test(m.text)).length;
 
-    ws.current.onopen = () => {
-      console.log("✅ WebSocket connected");
-    };
+    const topTopic =
+      mentionsFertilizer >= mentionsWater && mentionsFertilizer >= mentionsPest
+        ? "organic nutrition"
+        : mentionsWater >= mentionsPest
+        ? "irrigation planning"
+        : "pest management";
 
-    ws.current.onmessage = (event) => {
-      const newMessage = {
-        id: Date.now().toString(),
-        name: "Other",
-        text: event.data,
-        type: "left",
-      };
-      setMessages((prev) => [...prev, newMessage]);
-    };
+    setSummary(
+      `Recent discussion summary:\n` +
+        `• Total messages reviewed: ${recent.length}\n` +
+        `• Active topic: ${topTopic}\n` +
+        `• Action for farmers: Collect 2 practical tips from the thread and apply them on a small trial patch before full-field rollout.`
+    );
+  }, [messages]);
 
-    ws.current.onerror = (error) => {
-      console.error("❌ WebSocket error:", error);
-    };
-
-    ws.current.onclose = () => {
-      console.log("🔌 WebSocket closed");
-    };
-
-    return () => {
-      ws.current?.close();
-    };
-  }, []);
-
-  // 🧠 Trigger AI Summary every 5 messages
+  // Trigger a local summary every 5 messages.
   useEffect(() => {
     if (messages.length > 0 && messages.length % 5 === 0) {
       generateSummary();
     }
-  }, [messages]);
-
-  const prompt = `you are a chat summarizer, give a summary of the the following chat: ${JSON.stringify(messages)}`;
-
-  async function generateSummary() {
-    try {
-      const res = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-goog-api-key": `${process.env.EXPO_PUBLIC_GEMINI_KEY}`,
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
-        }
-      );
-
-      const data = await res.json();
-      const text =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
-      setSummary(text);
-    } catch (err) {
-      console.log("Error calling GenAI:", err);
-      setSummary("Error fetching response");
-    }
-  }
+  }, [messages, generateSummary]);
 
   const sendMessage = () => {
     if (inputText.trim() === "") return;
@@ -136,10 +107,30 @@ export default function Group1({ navigation }) {
       id: Date.now().toString(),
       name: "You",
       text: inputText,
-      type: "right",
+      type: "right" as const,
     };
     setMessages((prev) => [...prev, newMessage]);
-    ws.current?.send(inputText);
+
+    // Simulated community response to keep forum fully frontend-only.
+    const cannedReplies = [
+      "Thanks for sharing. Try this first on a small section and track yield for 7 days.",
+      "Good point. Check soil moisture in the evening before next irrigation.",
+      "You can combine this with compost for better root health.",
+    ];
+    const reply = cannedReplies[messages.length % cannedReplies.length];
+
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `${Date.now()}-reply`,
+          name: "Farmer Friend",
+          text: reply,
+          type: "left",
+        },
+      ]);
+    }, 700);
+
     setInputText("");
 
     setTimeout(() => {
@@ -150,7 +141,7 @@ export default function Group1({ navigation }) {
     }, 100);
   };
 
-  const renderMessage = ({ item }) => {
+  const renderMessage = ({ item }: { item: ForumMessage }) => {
     const isRight = item.type === "right";
 
     return (
@@ -184,7 +175,7 @@ export default function Group1({ navigation }) {
       <View className="flex-1 bg-white">
         {/* Header */}
         <View className="flex-row items-center px-4 py-3 border-b border-gray-300">
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
           <Text className="ml-4 text-lg font-semibold">

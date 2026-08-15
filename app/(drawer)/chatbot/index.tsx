@@ -15,13 +15,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useAuthStore } from "../../../store/authStore";
-import { useLocationStore } from "@/store/locationStore";
 
 export default function ChatBotScreen() {
-  const credentials = useAuthStore((state) => state.credentials);
-  const { state, district } = useLocationStore();
-
   type Message = {
     id: string;
     text?: string;
@@ -31,7 +26,6 @@ export default function ChatBotScreen() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
-  const [base64Image, setBase64Image] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
@@ -127,8 +121,6 @@ Preventive Measures:
 
       if (!result.canceled) {
         const uri = result.assets[0].uri;
-        const base64 = result.assets[0].base64 ?? null;
-        setBase64Image(base64);
 
         const imageMessage: Message = {
           id: Date.now().toString(),

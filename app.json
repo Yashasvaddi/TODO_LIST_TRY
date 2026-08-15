@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -21,7 +20,6 @@
         "backgroundColor": "#ffffff"
       },
       "softwareKeyboardLayoutMode": "resize",
-      "edgeToEdgeEnabled": true,
       "package": "com.anonymous.myapp"
     },
     "web": {
@@ -43,7 +41,9 @@
       "expo-localization",
       "expo-video",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-image",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true
@@ -51,8 +51,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "622acc17-5064-485c-83c0-21ac4e5f6590"
+        "projectId": "76ce1a3f-a904-48f5-9192-165e2f85ab04"
       }
-    }
+    },
+    "owner": "mandar123okbro"
   }
 }

@@ -2,10 +2,26 @@ import React, { useState, useMemo } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, FlatList, Modal } from "react-native";
 import statesData from "../app/(drawer)/market_prices/data/states.json";
 
+type MarketItem = {
+  market: string;
+  predicted_next_day_price: number;
+  latest_min_price: number;
+  latest_max_price: number;
+  last_known_date: string;
+};
+
+type MarketResult = {
+  commodity: string;
+  state: string;
+  district: string;
+  prediction_date: string;
+  markets: MarketItem[];
+};
+
 interface MarketFormProps {
   crop: string;
   setCrop: (text: string) => void;
-  setItems: (data: any) => void;
+  setItems: (data: MarketResult) => void;
   loading: boolean;
   setLoading: (loading: boolean) => void;
   selectedState: string;
@@ -33,6 +49,38 @@ export default function MarketForm({
     return found ? found.districts : [];
   }, [selectedState]);
 
+  const buildMockMarketData = (
+    state: string,
+    district: string,
+    commodity: string
+  ): MarketResult => {
+    const markets = [
+      `${district} Main Mandi`,
+      `${district} Rural Yard`,
+      `${state} Agri Hub`,
+    ];
+    const seed = `${state}-${district}-${commodity}`.length;
+    const basePrice = 1500 + seed * 12;
+
+    return {
+      commodity,
+      state,
+      district,
+      prediction_date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+      markets: markets.map((market, index) => {
+        const drift = (index + 1) * 35;
+        const predicted = basePrice + drift;
+        return {
+          market,
+          predicted_next_day_price: predicted,
+          latest_min_price: predicted - 90,
+          latest_max_price: predicted + 110,
+          last_known_date: new Date().toISOString().slice(0, 10),
+        };
+      }),
+    };
+  };
+
   const handleSubmit = async () => {
     if (!selectedState || !selectedDistrict || !crop) {
       Alert.alert("Error", "Please fill all fields before submitting");
@@ -41,18 +89,11 @@ export default function MarketForm({
 
     setLoading(true);
     try {
-      const apiBody = { state: selectedState, district: selectedDistrict, commodity: crop };
-      const response = await fetch("https://www.codersmitramandal.shop/sih/marketprice/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(apiBody),
-      });
-      const data = await response.json();
-      setItems(data || {});
-      console.log("Fetched:", data);
+      const data = buildMockMarketData(selectedState, selectedDistrict, crop.trim());
+      setItems(data);
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Failed to fetch data.");
+      Alert.alert("Error", "Failed to generate local market data.");
     } finally {
       setLoading(false);
     }

@@ -42,7 +42,6 @@ export default function MarketPrices() {
               setSelectedDistrict={setSelectedDistrict}
               crop={crop}
               setCrop={setCrop}
-              items={items}
               setItems={setItems}
               loading={loading}
               setLoading={setLoading}

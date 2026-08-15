@@ -4,12 +4,21 @@ import WebMap from "../../../components/WebMap";
 import LocationCrop from "@/components/LocationCrop";
 import * as Location from "expo-location";
 import { useLocationStore } from "@/store/locationStore";
-import { LanguageStore } from "@/store/languageStore";
+
+type SoilDetails = {
+  locationInfo: { district: string; state: string };
+  rainfallBand: string;
+  soilTexture: string;
+};
 
 export default function MapPicker() {
   const { latitude: storeLat, longitude: storeLong, setLocation } = useLocationStore();
   const [coords, setCoords] = useState({ lat: storeLat ?? 19.076, lon: storeLong ?? 72.877 });
-  const [details, setDetails] = useState({});
+  const [details, setDetails] = useState<SoilDetails>({
+    locationInfo: { district: "--", state: "--" },
+    rainfallBand: "Moderate",
+    soilTexture: "Loamy",
+  });
   const [apiLoad, setApiLoad] = useState(false);
 
   // ✅ Fetch live location once on app start
@@ -33,17 +42,10 @@ export default function MapPicker() {
   useEffect(() => {
     if (coords.lat == null || coords.lon == null) return;
 
-    const fetchAllData = async () => {
+    const buildLocalData = async () => {
       try {
         setApiLoad(true);
 
-        const res = await fetch("https://www.codersmitramandal.shop/sih/recommend/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(coords),
-        });
-        const apiData = await res.json();
-        console.log(apiData);
         let locationInfo = { district: "--", state: "--" };
         try {
           const [place] = await Location.reverseGeocodeAsync({ latitude: coords.lat, longitude: coords.lon });
@@ -53,16 +55,19 @@ export default function MapPicker() {
         } catch {
           console.warn("Reverse geocode failed");
         }
-        
-        
-        setDetails({ ...apiData, locationInfo });
+
+        const moistureScore = Math.abs(Math.sin(coords.lat * 0.6 + coords.lon * 0.4));
+        const rainfallBand = moistureScore > 0.66 ? "High" : moistureScore > 0.33 ? "Moderate" : "Low";
+        const soilTexture = moistureScore > 0.66 ? "Clay Loam" : moistureScore > 0.33 ? "Loamy" : "Sandy Loam";
+
+        setDetails({ locationInfo, rainfallBand, soilTexture });
       } catch (err) {
         console.log("Error fetching data:", err);
       } finally {
         setApiLoad(false);
       }
     };
-    fetchAllData();
+    buildLocalData();
   }, [coords]);
 
   return (
