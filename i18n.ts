@@ -9,6 +9,7 @@ const resources = {
     translation: {
       home: "Home",
       chatBot: "ChatBot",
+      Calculator: "Calculator",
       soilHealth: "Soil Health",
       marketStats: "Market Stats",
       forums: "Forums",
@@ -29,6 +30,7 @@ const resources = {
   hi: {
     translation: {
       home: "होम",
+      Calculator: "कैलकुलेटर",
       chatBot: "चैटबॉट",
       soilHealth: "मिट्टी स्वास्थ्य",
       marketStats: "बाजार आंकड़े",
@@ -50,6 +52,7 @@ const resources = {
   ma: {
     translation: {
       home: "मुख्यपृष्ठ",
+      Calculator: "कॅल्क्युलेटर",
       chatBot: "चॅटबॉट",
       soilHealth: "माती आरोग्य",
       marketStats: "बाजार आकडेवारी",

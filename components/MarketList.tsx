@@ -51,7 +51,7 @@ export default function MarketList({ item, prediction_date }: MarketProps) {
       {/* Dates */}
       <View style={{ marginTop: 8 }}>
         <Text style={{ color: "#666", fontSize: 11 }}>
-          Last Known: {item.last_known_date}
+          Last Known: 2025-09-23
         </Text>
       </View>
     </View>

@@ -9,18 +9,60 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
+  ScrollView,
+  Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { ScrollView } from 'react-native';
+import * as Clipboard from "expo-clipboard";
 
 export default function Group1({ navigation }) {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    {
+      id: "1",
+      name: "Bhaswati",
+      text: "Hey everyone! Welcome to the Farmers Community.",
+      type: "left",
+    },
+    {
+      id: "2",
+      name: "Naresh",
+      text: "Hi Alice! Happy to be here.",
+      type: "left",
+    },
+    {
+      id: "3",
+      name: "Surendra",
+      text: "Does anyone have tips for organic fertilizers?",
+      type: "left",
+    },
+    {
+      id: "4",
+      name: "Raj",
+      text: "Yes! Compost and cow dung work really well.",
+      type: "left",
+    },
+  ]);
   const [inputText, setInputText] = useState("");
   const [summary, setSummary] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
   const flatListRef = useRef(null);
   const ws = useRef<WebSocket | null>(null);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  // Keyboard listeners
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardDidShow", () =>
+      setKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardVisible(false)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     ws.current = new WebSocket("wss://codersmitramandal.shop/sih/ws/group1");
@@ -69,16 +111,17 @@ export default function Group1({ navigation }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-goog-api-key": `${process.env.EXPO_PUBLIC_GEMINI_KEY}`
+            "X-goog-api-key": `${process.env.EXPO_PUBLIC_GEMINI_KEY}`,
           },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
         }
       );
 
       const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+      const text =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
       setSummary(text);
     } catch (err) {
       console.log("Error calling GenAI:", err);
@@ -115,7 +158,9 @@ export default function Group1({ navigation }) {
         className={`flex-row my-2 ${isRight ? "justify-end" : "justify-start"}`}
       >
         <View
-          className={`max-w-[75%] px-3 py-2 rounded-2xl ${isRight ? "bg-green-700 rounded-br-none" : "bg-gray-200 rounded-bl-none"
+          className={`max-w-[75%] px-3 py-2 rounded-2xl ${isRight
+            ? "bg-green-700 rounded-br-none"
+            : "bg-gray-200 rounded-bl-none"
             }`}
         >
           {!isRight && (
@@ -132,9 +177,10 @@ export default function Group1({ navigation }) {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "padding"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 95}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={keyboardVisible ? 90 : 0}
     >
+
       <View className="flex-1 bg-white">
         {/* Header */}
         <View className="flex-row items-center px-4 py-3 border-b border-gray-300">
@@ -156,19 +202,27 @@ export default function Group1({ navigation }) {
         />
 
         {/* Input Box */}
-        <View className="flex-row mb-6 items-center border-t border-gray-300 px-3 py-2 bg-white">
+        <View className="flex-row items-center p-3 py-3 border-t border-gray-300 bg-white">
           <TextInput
+            className="flex-1 max-h-24 px-4 py-3 border border-gray-300 rounded-full text-base bg-gray-100"
             placeholder="Type your message..."
-            className="flex-1 px-3 py-2 bg-gray-100 rounded-full"
+            placeholderTextColor="#999"
             value={inputText}
             onChangeText={setInputText}
+            multiline
           />
-          <TouchableOpacity
-            onPress={sendMessage}
-            className="ml-2 bg-green-700 p-2 rounded-full"
-          >
-            <Ionicons name="send" size={20} color="white" />
-          </TouchableOpacity>
+          {inputText.trim() === "" ? (
+            <TouchableOpacity className="ml-2 bg-green-700 p-3 rounded-full">
+              <Ionicons name="mic-outline" size={22} color="#fff" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              className="ml-2 bg-green-700 p-3 rounded-full"
+              onPress={sendMessage}
+            >
+              <Ionicons name="send-outline" size={22} color="#fff" />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Floating Button for Summary */}
@@ -190,12 +244,16 @@ export default function Group1({ navigation }) {
             <View className="w-full bg-white rounded-2xl p-6 shadow-lg">
               <Text className="text-lg font-bold mb-4">AI Summary</Text>
               <ScrollView className="max-h-64">
-                <Text className="text-gray-700 text-sm">{summary || "No summary yet"}</Text>
+                <Text className="text-gray-700 text-sm">
+                  {summary || "No summary yet"}
+                </Text>
               </ScrollView>
               <View className="flex-row justify-end mt-4">
                 <TouchableOpacity
                   className="bg-green-700 py-2 px-4 rounded-lg mr-2"
-                  onPress={() => navigator.clipboard.writeText(summary || "")}
+                  onPress={() =>
+                    Clipboard.setStringAsync(summary || "")
+                  } // ✅ fixed here
                 >
                   <Text className="text-white font-medium">Copy</Text>
                 </TouchableOpacity>
@@ -209,7 +267,6 @@ export default function Group1({ navigation }) {
             </View>
           </View>
         </Modal>
-
       </View>
     </KeyboardAvoidingView>
   );

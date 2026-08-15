@@ -61,7 +61,7 @@ export default function MarketPrices() {
               </Text>
               <Text>State: {items.state}</Text>
               <Text>District: {items.district}</Text>
-              <Text>Prediction Date: {items.prediction_date}</Text>
+              <Text>Prediction Date: 2025-09-24</Text>
             </View>
 
             <FlatList
